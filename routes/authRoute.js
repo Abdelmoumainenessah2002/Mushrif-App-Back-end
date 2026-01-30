@@ -5,6 +5,10 @@ const {
   completeProfileCtrl, 
   loginUserCtrl
 } = require('../controllers/authController');
+const { createLoginHistoryEntry } = require('../utils/loginHistoryHelper');
+const { createNotification } = require('../services/notification.service');
+
+
 
 // Regular registration
 router.post('/register', registerUserCtrl);
@@ -22,7 +26,7 @@ router.get('/google',
 
 router.get('/google/callback', 
   passport.authenticate('google', { session: false }),
-  (req, res) => {
+  async (req, res) => {
     try {
       if (!req.user) {
         return res.status(400).json({ 
@@ -31,30 +35,167 @@ router.get('/google/callback',
         });
       }
 
+      // Create login history entry
+      const loginEntry = await createLoginHistoryEntry(req, 'google', true);
+      
+      // Add login history to user
+      if (!req.user.loginHistory) {
+        req.user.loginHistory = [];
+      }
+      req.user.loginHistory.push(loginEntry);
+      
+      // Save user with login history
+      await req.user.save();
+
+
+      // Create welcome notification (only once)
+      if (!req.user.hasWelcomeNotification) {
+        await createNotification({
+          userId: req.user._id,
+          type: 'success',
+          title: 'Welcome to Mushrif!',
+          message: `Hello ${req.user.firstName}, welcome to Mushrif! We're excited to have you on board. Explore our features and let us know if you need any assistance. Happy exploring!`
+        });
+
+        req.user.hasWelcomeNotification = true;
+        await req.user.save();
+      }
+
+
+      
       // Generate JWT token
       const token = req.user.generateAuthToken();
       
-      // Show success page
+      // Show success page with additional device info
       res.send(`
         <!DOCTYPE html>
         <html>
         <head>
           <title>Authentication Successful</title>
           <style>
-            body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
-            .success { background: #d4edda; border: 1px solid #c3e6cb; padding: 20px; border-radius: 5px; }
-            .token { background: #f8f9fa; padding: 15px; border-radius: 5px; word-break: break-all; font-family: monospace; }
+            body { 
+              font-family: Arial, sans-serif; 
+              max-width: 700px; 
+              margin: 50px auto; 
+              padding: 20px; 
+              background: #f5f5f5;
+            }
+            .container {
+              background: white;
+              padding: 30px;
+              border-radius: 10px;
+              box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            }
+            .success { 
+              background: #d4edda; 
+              border: 1px solid #c3e6cb; 
+              padding: 20px; 
+              border-radius: 5px; 
+              margin-bottom: 20px;
+            }
+            .info-section {
+              background: #f8f9fa;
+              padding: 15px;
+              border-radius: 5px;
+              margin: 15px 0;
+            }
+            .info-section h3 {
+              margin-top: 0;
+              color: #495057;
+            }
+            .token { 
+              background: #fff3cd; 
+              padding: 15px; 
+              border-radius: 5px; 
+              word-break: break-all; 
+              font-family: monospace;
+              font-size: 12px;
+              border: 1px solid #ffc107;
+            }
+            .info-row {
+              margin: 8px 0;
+              padding: 5px 0;
+              border-bottom: 1px solid #dee2e6;
+            }
+            .info-row:last-child {
+              border-bottom: none;
+            }
+            .label {
+              font-weight: bold;
+              color: #495057;
+              display: inline-block;
+              width: 120px;
+            }
+            .value {
+              color: #212529;
+            }
+            .warning {
+              background: #fff3cd;
+              border: 1px solid #ffc107;
+              padding: 10px;
+              border-radius: 5px;
+              margin-top: 15px;
+              font-size: 14px;
+            }
           </style>
         </head>
         <body>
-          <div class="success">
-            <h2>🎉 Google OAuth Successful!</h2>
-            <p><strong>Welcome:</strong> ${req.user.firstName} ${req.user.lastName}</p>
-            <p><strong>Email:</strong> ${req.user.email}</p>
-            <p><strong>Username:</strong> ${req.user.username}</p>
-            <h3>Your JWT Token:</h3>
-            <div class="token">${token}</div>
-            <p><small>Save this token for API authentication</small></p>
+          <div class="container">
+            <div class="success">
+              <h2>🎉 Google OAuth Successful!</h2>
+              <div class="info-row">
+                <span class="label">Name:</span>
+                <span class="value">${req.user.firstName} ${req.user.lastName}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Email:</span>
+                <span class="value">${req.user.email}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Username:</span>
+                <span class="value">${req.user.username}</span>
+              </div>
+            </div>
+
+            <div class="info-section">
+              <h3>🖥️ Device Information</h3>
+              <div class="info-row">
+                <span class="label">Browser:</span>
+                <span class="value">${loginEntry.browser.name} ${loginEntry.browser.version}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Device Type:</span>
+                <span class="value">${loginEntry.device.type}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Operating System:</span>
+                <span class="value">${loginEntry.os.name} ${loginEntry.os.version}</span>
+              </div>
+            </div>
+
+            <div class="info-section">
+              <h3>📍 Login Location</h3>
+              <div class="info-row">
+                <span class="label">IP Address:</span>
+                <span class="value">${loginEntry.ipAddress}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Location:</span>
+                <span class="value">${loginEntry.location.city}, ${loginEntry.location.region}, ${loginEntry.location.country}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Timezone:</span>
+                <span class="value">${loginEntry.location.timezone}</span>
+              </div>
+            </div>
+
+            <div class="info-section">
+              <h3>🔑 Your JWT Token</h3>
+              <div class="token">${token}</div>
+              <div class="warning">
+                ⚠️ <strong>Important:</strong> Save this token securely. You'll need it for API authentication.
+              </div>
+            </div>
           </div>
         </body>
         </html>
@@ -78,7 +219,7 @@ router.get('/facebook',
 
 router.get('/facebook/callback',
   passport.authenticate('facebook', { session: false }),
-  (req, res) => {
+  async (req, res) => {
     try {
       if (!req.user) {
         return res.status(400).json({ 
@@ -87,33 +228,164 @@ router.get('/facebook/callback',
         });
       }
 
+      // Create login history entry
+      const loginEntry = await createLoginHistoryEntry(req, 'facebook', true);
+      
+      // Add login history to user
+      if (!req.user.loginHistory) {
+        req.user.loginHistory = [];
+      }
+      req.user.loginHistory.push(loginEntry);
+      
+      // Save user with login history
+      await req.user.save();
+
+      // Create welcome notification (only once)
+      if (!req.user.hasWelcomeNotification) {
+        await createNotification({
+          userId: req.user._id,
+          type: 'success',
+          title: 'Welcome to Mushrif!',
+          message: `Hello ${req.user.firstName}, welcome to Mushrif! We're excited to have you on board. Explore our features and let us know if you need any assistance. Happy exploring!`
+        });
+
+        req.user.hasWelcomeNotification = true;
+        await req.user.save();
+      }
+      
       // Generate JWT token
       const token = req.user.generateAuthToken();
       
-      // Show success page
+      // Show success page with additional device info
       res.send(`
         <!DOCTYPE html>
         <html>
         <head>
-          <title>Facebook Authentication Successful</title>
+          <title>Authentication Successful</title>
           <style>
-            body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
-            .success { background: #d4edda; border: 1px solid #c3e6cb; padding: 20px; border-radius: 5px; }
-            .facebook { background: #4267B2; color: white; padding: 10px; border-radius: 5px; margin-bottom: 20px; }
-            .token { background: #f8f9fa; padding: 15px; border-radius: 5px; word-break: break-all; font-family: monospace; }
+            body { 
+              font-family: Arial, sans-serif; 
+              max-width: 700px; 
+              margin: 50px auto; 
+              padding: 20px; 
+              background: #f5f5f5;
+            }
+            .container {
+              background: white;
+              padding: 30px;
+              border-radius: 10px;
+              box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            }
+            .success { 
+              background: #d4edda; 
+              border: 1px solid #c3e6cb; 
+              padding: 20px; 
+              border-radius: 5px; 
+              margin-bottom: 20px;
+            }
+            .info-section {
+              background: #f8f9fa;
+              padding: 15px;
+              border-radius: 5px;
+              margin: 15px 0;
+            }
+            .info-section h3 {
+              margin-top: 0;
+              color: #495057;
+            }
+            .token { 
+              background: #fff3cd; 
+              padding: 15px; 
+              border-radius: 5px; 
+              word-break: break-all; 
+              font-family: monospace;
+              font-size: 12px;
+              border: 1px solid #ffc107;
+            }
+            .info-row {
+              margin: 8px 0;
+              padding: 5px 0;
+              border-bottom: 1px solid #dee2e6;
+            }
+            .info-row:last-child {
+              border-bottom: none;
+            }
+            .label {
+              font-weight: bold;
+              color: #495057;
+              display: inline-block;
+              width: 120px;
+            }
+            .value {
+              color: #212529;
+            }
+            .warning {
+              background: #fff3cd;
+              border: 1px solid #ffc107;
+              padding: 10px;
+              border-radius: 5px;
+              margin-top: 15px;
+              font-size: 14px;
+            }
           </style>
         </head>
         <body>
-          <div class="facebook">
-            <h2>📘 Facebook OAuth Successful!</h2>
-          </div>
-          <div class="success">
-            <p><strong>Welcome:</strong> ${req.user.firstName} ${req.user.lastName}</p>
-            <p><strong>Email:</strong> ${req.user.email}</p>
-            <p><strong>Username:</strong> ${req.user.username}</p>
-            <h3>Your JWT Token:</h3>
-            <div class="token">${token}</div>
-            <p><small>Save this token for API authentication</small></p>
+          <div class="container">
+            <div class="success">
+              <h2>📘 Facebook OAuth Successful!</h2>
+              <div class="info-row">
+                <span class="label">Name:</span>
+                <span class="value">${req.user.firstName} ${req.user.lastName}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Email:</span>
+                <span class="value">${req.user.email}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Username:</span>
+                <span class="value">${req.user.username}</span>
+              </div>
+            </div>
+
+            <div class="info-section">
+              <h3>🖥️ Device Information</h3>
+              <div class="info-row">
+                <span class="label">Browser:</span>
+                <span class="value">${loginEntry.browser.name} ${loginEntry.browser.version}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Device Type:</span>
+                <span class="value">${loginEntry.device.type}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Operating System:</span>
+                <span class="value">${loginEntry.os.name} ${loginEntry.os.version}</span>
+              </div>
+            </div>
+
+            <div class="info-section">
+              <h3>📍 Login Location</h3>
+              <div class="info-row">
+                <span class="label">IP Address:</span>
+                <span class="value">${loginEntry.ipAddress}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Location:</span>
+                <span class="value">${loginEntry.location.city}, ${loginEntry.location.region}, ${loginEntry.location.country}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Timezone:</span>
+                <span class="value">${loginEntry.location.timezone}</span>
+              </div>
+            </div>
+
+            <div class="info-section">
+              <h3>🔑 Your JWT Token</h3>
+              <div class="token">${token}</div>
+              <div class="warning">
+                ⚠️ <strong>Important:</strong> Save this token securely. You'll need it for API authentication.
+              </div>
+            </div>
           </div>
         </body>
         </html>
@@ -139,7 +411,7 @@ router.get('/github',
 
 router.get('/github/callback',
   passport.authenticate('github', { session: false }),
-  (req, res) => {
+  async (req, res) => {
     try {
       if (!req.user) {
         return res.status(400).json({ 
@@ -148,33 +420,164 @@ router.get('/github/callback',
         });
       }
 
+      // Create login history entry
+      const loginEntry = await createLoginHistoryEntry(req, 'github', true);
+      
+      // Add login history to user
+      if (!req.user.loginHistory) {
+        req.user.loginHistory = [];
+      }
+      req.user.loginHistory.push(loginEntry);
+      
+      // Save user with login history
+      await req.user.save();
+
+      // Create welcome notification (only once)
+      if (!req.user.hasWelcomeNotification) {
+        await createNotification({
+          userId: req.user._id,
+          type: 'success',
+          title: 'Welcome to Mushrif!',
+          message: `Hello ${req.user.firstName}, welcome to Mushrif! We're excited to have you on board. Explore our features and let us know if you need any assistance. Happy exploring!`
+        });
+
+        req.user.hasWelcomeNotification = true;
+        await req.user.save();
+      }
+      
       // Generate JWT token
       const token = req.user.generateAuthToken();
       
-      // Show success page
+      // Show success page with additional device info
       res.send(`
         <!DOCTYPE html>
         <html>
         <head>
-          <title>GitHub Authentication Successful</title>
+          <title>Authentication Successful</title>
           <style>
-            body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
-            .success { background: #d4edda; border: 1px solid #c3e6cb; padding: 20px; border-radius: 5px; }
-            .github { background: #24292e; color: white; padding: 10px; border-radius: 5px; margin-bottom: 20px; }
-            .token { background: #f8f9fa; padding: 15px; border-radius: 5px; word-break: break-all; font-family: monospace; }
+            body { 
+              font-family: Arial, sans-serif; 
+              max-width: 700px; 
+              margin: 50px auto; 
+              padding: 20px; 
+              background: #f5f5f5;
+            }
+            .container {
+              background: white;
+              padding: 30px;
+              border-radius: 10px;
+              box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            }
+            .success { 
+              background: #d4edda; 
+              border: 1px solid #c3e6cb; 
+              padding: 20px; 
+              border-radius: 5px; 
+              margin-bottom: 20px;
+            }
+            .info-section {
+              background: #f8f9fa;
+              padding: 15px;
+              border-radius: 5px;
+              margin: 15px 0;
+            }
+            .info-section h3 {
+              margin-top: 0;
+              color: #495057;
+            }
+            .token { 
+              background: #fff3cd; 
+              padding: 15px; 
+              border-radius: 5px; 
+              word-break: break-all; 
+              font-family: monospace;
+              font-size: 12px;
+              border: 1px solid #ffc107;
+            }
+            .info-row {
+              margin: 8px 0;
+              padding: 5px 0;
+              border-bottom: 1px solid #dee2e6;
+            }
+            .info-row:last-child {
+              border-bottom: none;
+            }
+            .label {
+              font-weight: bold;
+              color: #495057;
+              display: inline-block;
+              width: 120px;
+            }
+            .value {
+              color: #212529;
+            }
+            .warning {
+              background: #fff3cd;
+              border: 1px solid #ffc107;
+              padding: 10px;
+              border-radius: 5px;
+              margin-top: 15px;
+              font-size: 14px;
+            }
           </style>
         </head>
         <body>
-          <div class="github">
-            <h2>🐙 GitHub OAuth Successful!</h2>
-          </div>
-          <div class="success">
-            <p><strong>Welcome:</strong> ${req.user.firstName} ${req.user.lastName}</p>
-            <p><strong>Email:</strong> ${req.user.email}</p>
-            <p><strong>Username:</strong> ${req.user.username}</p>
-            <h3>Your JWT Token:</h3>
-            <div class="token">${token}</div>
-            <p><small>Save this token for API authentication</small></p>
+          <div class="container">
+            <div class="success">
+              <h2>🐙 GitHub OAuth Successful!</h2>
+              <div class="info-row">
+                <span class="label">Name:</span>
+                <span class="value">${req.user.firstName} ${req.user.lastName}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Email:</span>
+                <span class="value">${req.user.email}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Username:</span>
+                <span class="value">${req.user.username}</span>
+              </div>
+            </div>
+
+            <div class="info-section">
+              <h3>🖥️ Device Information</h3>
+              <div class="info-row">
+                <span class="label">Browser:</span>
+                <span class="value">${loginEntry.browser.name} ${loginEntry.browser.version}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Device Type:</span>
+                <span class="value">${loginEntry.device.type}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Operating System:</span>
+                <span class="value">${loginEntry.os.name} ${loginEntry.os.version}</span>
+              </div>
+            </div>
+
+            <div class="info-section">
+              <h3>📍 Login Location</h3>
+              <div class="info-row">
+                <span class="label">IP Address:</span>
+                <span class="value">${loginEntry.ipAddress}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Location:</span>
+                <span class="value">${loginEntry.location.city}, ${loginEntry.location.region}, ${loginEntry.location.country}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Timezone:</span>
+                <span class="value">${loginEntry.location.timezone}</span>
+              </div>
+            </div>
+
+            <div class="info-section">
+              <h3>🔑 Your JWT Token</h3>
+              <div class="token">${token}</div>
+              <div class="warning">
+                ⚠️ <strong>Important:</strong> Save this token securely. You'll need it for API authentication.
+              </div>
+            </div>
           </div>
         </body>
         </html>
