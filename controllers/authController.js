@@ -7,9 +7,11 @@ const {
   validateOAuthUser,
   validateCompleteProfile,
   validateUserId 
-} = require("../Models/User");
+} = require("../models/User");
 const {generateUID, generateUsername} = require("../utils/generateUID");
 const {formatPhoneNumber} = require("../utils/phoneUtils");
+const { createLoginHistoryEntry } = require("../utils/loginHistoryHelper");
+const { createNotification } = require('../services/notification.service');
 
 /**
  * @desc    Register new user
@@ -65,14 +67,8 @@ module.exports.registerUserCtrl = asyncHandler(async (req, res) => {
   const salt = 10;
   const hashedPassword = await bcrypt.hash(password, salt);
 
-  // Get client IP address
-  const ipAddress = req.ip || 
-                   req.connection.remoteAddress || 
-                   req.socket.remoteAddress ||
-                   req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
-                   '127.0.0.1';
-
-  const userAgent = req.get('User-Agent') || 'Unknown';
+  // Create login history entry
+  const loginEntry = await createLoginHistoryEntry(req, 'local', true);
 
   // Create new user
   const newUser = new User({
@@ -92,18 +88,26 @@ module.exports.registerUserCtrl = asyncHandler(async (req, res) => {
       email: email.toLowerCase(),
       createdAt: new Date()
     }],
-    loginHistory: [{
-      ipAddress,
-      userAgent,
-      loginTime: new Date(),
-      isSuccessful: true
-    }],
-    lastLoginIP: ipAddress,
-    lastLoginTime: new Date()
+    loginHistory: [loginEntry],
+    lastLoginIP: loginEntry.ipAddress,
+    lastLoginTime: loginEntry.loginTime
   });
 
   // Save user to database
   await newUser.save();
+
+  // Create welcome notification (only once)
+  if (!newUser.hasWelcomeNotification) {
+    await createNotification({
+      userId: newUser._id,
+      type: 'success',
+      title: 'Welcome to Mushrif!',
+      message: `Hello ${newUser.firstName}, welcome to Mushrif! We're excited to have you on board. Explore our features and let us know if you need any assistance. Happy exploring!`
+    });
+
+    newUser.hasWelcomeNotification = true;
+    await newUser.save();
+  }
 
   // Generate JWT token
   const token = newUser.generateAuthToken();
@@ -305,6 +309,20 @@ module.exports.loginUserCtrl = asyncHandler(async (req, res) => {
       message: "Invalid email or password" 
     });
   }
+
+  // Create login history entry
+  const loginEntry = await createLoginHistoryEntry(req, 'local', true);
+  
+  // Add login history to user
+  if (!user.loginHistory) {
+    user.loginHistory = [];
+  }
+  user.loginHistory.push(loginEntry);
+  user.lastLoginIP = loginEntry.ipAddress;
+  user.lastLoginTime = loginEntry.loginTime;
+  
+  // Save user with login history
+  await user.save();
 
   // Generate JWT token
   const token = user.generateAuthToken();
