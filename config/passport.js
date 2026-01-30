@@ -4,7 +4,7 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const FacebookStrategy = require('passport-facebook').Strategy;
 const GitHubStrategy = require('passport-github2').Strategy;
 const fetch = require('node-fetch');
-const { User } = require('../Models/User');
+const { User } = require('../models/User');
 const { generateUID, generateUsername } = require('../utils/generateUID');
 
 // Google OAuth Strategy
@@ -30,13 +30,7 @@ passport.use(new GoogleStrategy({
     });
 
     if (user) {
-      // Update login history for returning user
-      user.loginHistory.push({
-        ipAddress,
-        userAgent,
-        loginTime: new Date(),
-        isSuccessful: true
-      });
+      // Update last login info (full login history will be added by route handler)
       user.lastLoginIP = ipAddress;
       user.lastLoginTime = new Date();
       await user.save();
@@ -61,13 +55,7 @@ passport.use(new GoogleStrategy({
 
       user.addProvider(providerData);
       
-      // Update login history
-      user.loginHistory.push({
-        ipAddress,
-        userAgent,
-        loginTime: new Date(),
-        isSuccessful: true
-      });
+      // Update last login info (full login history will be added by route handler)
       user.lastLoginIP = ipAddress;
       user.lastLoginTime = new Date();
       
@@ -104,12 +92,7 @@ passport.use(new GoogleStrategy({
         refreshToken,
         createdAt: new Date()
       }],
-      loginHistory: [{
-        ipAddress,
-        userAgent,
-        loginTime: new Date(),
-        isSuccessful: true
-      }],
+      loginHistory: [],
       lastLoginIP: ipAddress,
       lastLoginTime: new Date()
     });
@@ -131,6 +114,7 @@ passport.use(new FacebookStrategy({
   passReqToCallback: true
 }, async (req, accessToken, refreshToken, profile, done) => {
   try {
+    console.log(process.env.FACEBOOK_APP_ID);
     // Get dynamic IP and User Agent from request
     const ipAddress = req.ip || 
                      req.connection.remoteAddress || 
@@ -146,13 +130,7 @@ passport.use(new FacebookStrategy({
     });
 
     if (user) {
-      // Update login history for returning Facebook user
-      user.loginHistory.push({
-        ipAddress,
-        userAgent,
-        loginTime: new Date(),
-        isSuccessful: true
-      });
+      // Update last login info for returning Facebook user (full login history will be added by route handler)
       user.lastLoginIP = ipAddress;
       user.lastLoginTime = new Date();
       
@@ -181,13 +159,7 @@ passport.use(new FacebookStrategy({
 
         user.addProvider(providerData);
         
-        // Update login history for existing user
-        user.loginHistory.push({
-          ipAddress,
-          userAgent,
-          loginTime: new Date(),
-          isSuccessful: true
-        });
+        // Update last login info for existing user (full login history will be added by route handler)
         user.lastLoginIP = ipAddress;
         user.lastLoginTime = new Date();
         
@@ -225,12 +197,7 @@ passport.use(new FacebookStrategy({
         refreshToken,
         createdAt: new Date()
       }],
-      loginHistory: [{
-        ipAddress,
-        userAgent,
-        loginTime: new Date(),
-        isSuccessful: true
-      }],
+      loginHistory: [],
       lastLoginIP: ipAddress,
       lastLoginTime: new Date()
     });
@@ -288,12 +255,7 @@ passport.use(new GitHubStrategy({
     });
 
     if (user) {
-      user.loginHistory.push({
-        ipAddress,
-        userAgent,
-        loginTime: new Date(),
-        isSuccessful: true
-      });
+      // Update last login info (full login history will be added by route handler)
       user.lastLoginIP = ipAddress;
       user.lastLoginTime = new Date();
       await user.save();
@@ -316,12 +278,7 @@ passport.use(new GitHubStrategy({
         };
 
         user.addProvider(providerData);
-        user.loginHistory.push({
-          ipAddress,
-          userAgent,
-          loginTime: new Date(),
-          isSuccessful: true
-        });
+        // Update last login info (full login history will be added by route handler)
         user.lastLoginIP = ipAddress;
         user.lastLoginTime = new Date();
         await user.save();
@@ -357,12 +314,7 @@ passport.use(new GitHubStrategy({
         refreshToken,
         createdAt: new Date()
       }],
-      loginHistory: [{
-        ipAddress,
-        userAgent,
-        loginTime: new Date(),
-        isSuccessful: true
-      }],
+      loginHistory: [],
       lastLoginIP: ipAddress,
       lastLoginTime: new Date()
     });
