@@ -217,30 +217,77 @@ const userSchema = new mongoose.Schema({
  ],
 
  loginHistory: [
-   {
-     ipAddress: {
-       type: String,
-       required: true
-     },
-     userAgent: {
-       type: String, // Browser/device info
-       required: false
-     },
-     location: {
-       country: String,
-       city: String,
-       region: String
-     },
-     loginTime: {
-       type: Date,
-       default: Date.now
-     },
-     isSuccessful: {
-       type: Boolean,
-       default: true
-     }
-   }
- ],
+    {
+      // IP Information
+      ipAddress: {
+        type: String,
+        required: true
+      },
+      
+      // User Agent (raw)
+      userAgent: {
+        type: String,
+        required: false
+      },
+      
+      // Parsed Browser Information
+      browser: {
+        name: String,        // e.g., "Chrome", "Firefox", "Safari"
+        version: String,     // e.g., "120.0.0"
+        major: String        // e.g., "120"
+      },
+      
+      // Device Information
+      device: {
+        type: {
+          type: String,      // "desktop", "mobile", "tablet"
+        },
+        vendor: String,      // e.g., "Apple", "Samsung"
+        model: String        // e.g., "iPhone", "Galaxy S21"
+      },
+      
+      // Operating System
+      os: {
+        name: String,        // e.g., "Windows", "macOS", "iOS", "Android"
+        version: String      // e.g., "10", "14.2"
+      },
+      
+      // Location Information
+      location: {
+        country: String,     // e.g., "United States"
+        countryCode: String, // e.g., "US"
+        region: String,      // e.g., "California"
+        city: String,        // e.g., "San Francisco"
+        timezone: String,    // e.g., "America/Los_Angeles"
+        latitude: Number,
+        longitude: Number
+      },
+      
+      // Login Details
+      loginTime: {
+        type: Date,
+        default: Date.now
+      },
+      
+      isSuccessful: {
+        type: Boolean,
+        default: true
+      },
+      
+      // OAuth Provider (if applicable)
+      provider: {
+        type: String,
+        enum: ['local', 'google', 'facebook', 'github'],
+        default: 'local'
+      },
+      
+      // Additional metadata
+      metadata: {
+        isTrusted: Boolean,  // Whether this is a known device
+        isNewLocation: Boolean
+      }
+    }
+  ],
 
  // Keep only last 50 login records per user
  lastLoginIP: {
@@ -249,7 +296,12 @@ const userSchema = new mongoose.Schema({
 
  lastLoginTime: {
    type: Date
- }
+ },
+
+ hasWelcomeNotification: {
+    type: Boolean,
+    default: false
+  }
 
 }, {
   timestamps: true 
