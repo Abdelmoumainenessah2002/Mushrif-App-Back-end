@@ -6,7 +6,7 @@ const forgotPasswordLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: {
-    message: 'If email exists, reset link sent'
+    message: 'Too many password reset requests from this IP, please try again after 15 minutes'
   }
 });
 
