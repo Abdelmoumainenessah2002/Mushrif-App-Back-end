@@ -14,49 +14,65 @@ Mushrif is a fully integrated web application backend built using Node.js and Ex
 The backend follows a scalable MVC (Model-View-Controller) architecture designed to handle a large number of users, routes, and controllers as the application grows.
 
 ```
-├── app.js                 # Main application entry point
-├── package.json          # Project dependencies and scripts
-├── config/               # Configuration files
-│   ├── connectToDB.js    # Database connection setup
-│   └── passport.js       # Passport OAuth configuration
-├── controllers/          # Business logic controllers
-│   └── authController.js # Authentication controllers
-├── Models/               # Database models
-│   ├── User.js          # User model and validation
-│   └── Notification.js  # Notification model
-├── routes/               # API route definitions
-│   └── authRoute.js     # Authentication routes
-├── utils/                # Utility functions
-│   ├── generateUID.js   # UID and username generation
-│   └── phoneUtils.js    # Phone number utilities
-└── middleware/           # Custom middleware (future)
-    ├── auth.js          # Authentication middleware
-    ├── validation.js    # Request validation middleware
-    └── errorHandler.js  # Global error handling
+├── app.js                      # Main application entry point
+├── package.json               # Project dependencies and scripts
+├── API_TESTING.md            # API testing documentation and examples
+├── config/                    # Configuration files
+│   ├── connectToDB.js        # MongoDB connection setup
+│   └── passport.js           # Passport OAuth configuration (Google, Facebook, GitHub)
+├── controllers/               # Business logic controllers
+│   └── authController.js     # Authentication & user management controllers
+├── models/                    # Database models
+│   ├── User.js               # User schema, validation, JWT generation
+│   └── Notification.js       # Notification system model
+├── routes/                    # API route definitions
+│   └── authRoute.js          # Authentication & OAuth routes
+├── services/                  # Business logic services
+│   └── notification.service.js # Notification creation service
+└── utils/                     # Utility functions
+    ├── generateUID.js         # 8-digit UID generation & username creation
+    ├── loginHistoryHelper.js  # Login tracking (IP, browser, device, location)
+    └── phoneUtils.js          # International phone number validation & formatting
 ```
 
 ## 🚀 Features
 
 ### Authentication & Authorization
-- ✅ **Local Registration** - Email/password based registration
-- ✅ **OAuth Integration** - Google, Facebook, GitHub login
-- ✅ **JWT Authentication** - Secure token-based auth
-- ✅ **Profile Completion** - OAuth users can complete their profiles
-- ✅ **Password Hashing** - bcrypt for secure password storage
-- ✅ **Input Validation** - Comprehensive request validation using Joi
+- ✅ **Local Registration** - Email/password based registration with comprehensive validation
+- ✅ **OAuth Integration** - Google, Facebook, GitHub login with automatic profile creation
+- ✅ **JWT Authentication** - Secure token-based authentication
+- ✅ **Profile Completion** - OAuth users can complete their profiles with additional info
+- ✅ **Password Hashing** - bcryptjs for secure password storage
+- ✅ **Input Validation** - Comprehensive request validation using Joi schema validation
+- ✅ **Password Complexity** - Strong password requirements with joi-password-complexity
 
 ### User Management
-- ✅ **Unique User Identification** - 8-digit UID system
-- ✅ **Username Generation** - Automatic username creation
-- ✅ **Phone Number Validation** - International phone number support
+- ✅ **Unique User Identification** - 8-digit UID system for secure user identification
+- ✅ **Username Generation** - Automatic unique username creation based on first/last name
+- ✅ **Phone Number Validation** - International phone number support with country codes
 - ✅ **Age Verification** - Minimum age requirement (13+ years)
-- ✅ **Login History Tracking** - IP address and user agent logging
+- ✅ **Gender & DOB Management** - User demographic tracking
+- ✅ **Multi-Provider Support** - Seamless integration with multiple authentication providers (local, Google, Facebook, GitHub)
 
-### Security Features
-- ✅ **Password Complexity** - Strong password requirements
-- ✅ **Duplicate Prevention** - Email and phone number uniqueness
-- ✅ **Session Management** - Express session for OAuth flows
-- ✅ **IP Tracking** - Login history and security monitoring
+### Login & Security Tracking
+- ✅ **Login History Tracking** - Comprehensive session logging with IP addresses
+- ✅ **Device Detection** - Browser, OS, and device type detection using ua-parser-js
+- ✅ **Geolocation** - IP-based location detection for login tracking
+- ✅ **Last Login Info** - Track user's last login time and IP address
+- ✅ **User Agent Parsing** - Extract detailed browser and device information
+
+### Notification System
+- ✅ **Welcome Notifications** - Automatic welcome message for new users
+- ✅ **OAuth Notifications** - Notifications for social login events
+- ✅ **Notification Service** - Centralized notification creation and management
+- ✅ **Notification Types** - Support for different notification types and priorities
+- ✅ **Notification Expiration** - Optional expiration dates for notifications
+
+### Additional Features
+- ✅ **Session Management** - Express session configuration for OAuth flows
+- ✅ **Proxy Trust** - Proper IP address handling in production environments
+- ✅ **CORS Support** - Cross-origin resource sharing enabled
+- ✅ **Error Handling** - Async error handling with express-async-handler
 
 ## 🛠️ Tech Stack
 
@@ -89,7 +105,39 @@ The backend follows a scalable MVC (Model-View-Controller) architecture designed
 | `GET` | `/github` | Initiate GitHub OAuth login | Public | ✅ Implemented |
 | `GET` | `/github/callback` | GitHub OAuth callback (automatic) | Public | ✅ Implemented |
 
-### 📝 API Testing Examples
+## 📝 Recent Additions & Updates
+
+### New Services Layer
+- **Notification Service** (`services/notification.service.js`) - Centralized notification management with safe creation and validation
+
+### Enhanced User Management
+- **Login History System** - Complete tracking of user login activities with:
+  - IP address logging and location detection
+  - Browser, device, and OS information parsing
+  - Geolocation data based on IP
+  - Timestamp recording for each login
+- **Unique UID Generation** - Automatic 8-digit UID creation with uniqueness validation
+- **Smart Username Generation** - Auto-generated unique usernames based on user names with conflict resolution
+- **International Phone Support** - Full support for phone numbers with country codes and formatting
+
+### Enhanced Authentication
+- **Multiple Provider Support** - Seamless switching between local and OAuth providers
+- **Profile Completion Workflow** - OAuth users can enrich their profiles after initial login
+- **Comprehensive Validation** - Joi schemas for all authentication endpoints with detailed error messages
+- **Password Security** - bcryptjs hashing with complexity validation
+
+### Notification System
+- **Welcome Notifications** - Automatic welcome message for newly registered users
+- **OAuth Event Notifications** - Automatic notifications for social login events
+- **Notification Expiration** - Support for time-limited notifications
+- **Priority Levels** - Notifications with different priority levels (low, medium, high)
+
+### API Testing Documentation
+- **API_TESTING.md** - Comprehensive API testing guide with curl examples for all endpoints
+- Detailed request/response examples
+- Error handling documentation
+
+## 📝 API Testing Examples
 
 #### 1. Register New User (Email/Password)
 ```bash
@@ -428,7 +476,156 @@ The architecture is designed to handle growth:
 - **Response Compression**: Gzip compression for responses
 - **Image Optimization**: Optimized file upload and processing
 
-## 🚧 Roadmap
+## � Utilities & Services Documentation
+
+### Login History Helper (`utils/loginHistoryHelper.js`)
+Comprehensive tracking of user login activities with detailed device and location information.
+
+**Features:**
+- **User Agent Parsing**: Extracts browser name, version, device type, vendor, model, OS name and version
+- **IP-based Geolocation**: Determines country and city from IP address using geolocation API
+- **Login Entry Creation**: Generates structured login history records with all metadata
+- **Device Detection**: Identifies mobile/tablet/desktop devices
+
+**Login History Object Structure:**
+```javascript
+{
+  ipAddress: "192.168.1.1",
+  provider: "local", // or "google", "facebook", "github"
+  isSuccessful: true,
+  loginTime: "2025-07-12T10:30:00.000Z",
+  userAgent: "Mozilla/5.0...",
+  browser: {
+    name: "Chrome",
+    version: "120.0.0",
+    major: "120"
+  },
+  device: {
+    type: "desktop",
+    vendor: "Apple",
+    model: "MacBook Pro"
+  },
+  os: {
+    name: "macOS",
+    version: "14.5"
+  },
+  location: {
+    country: "United States",
+    city: "San Francisco"
+  }
+}
+```
+
+### UID & Username Generation (`utils/generateUID.js`)
+Automatic generation of unique user identifiers and usernames.
+
+**Functions:**
+- **`generateUID()`** - Generates 8-digit unique user ID
+  - Validates uniqueness against database
+  - Prevents collisions with retry logic
+  - Returns: String (8 digits)
+
+- **`generateUsername(firstName, lastName)`** - Creates unique username
+  - Format: `firstname.lastname`
+  - Auto-increment suffix if collision exists
+  - Cleans special characters and spaces
+  - Returns: String
+
+**Example:**
+```javascript
+const uid = await generateUID(); // "12345678"
+const username = await generateUsername("John", "Doe"); // "john.doe"
+```
+
+### Phone Number Utilities (`utils/phoneUtils.js`)
+International phone number validation and formatting with country code support.
+
+**Features:**
+- Country code validation
+- Phone number formatting
+- Number validation
+- Support for multiple phone formats
+
+**Phone Object Structure:**
+```javascript
+{
+  countryCode: "+213",       // 1-4 digits with + prefix
+  localNumber: "661234567",  // 6-15 digits
+  fullNumber: "+213661234567" // Complete formatted number
+}
+```
+
+### Notification Service (`services/notification.service.js`)
+Centralized service for creating and managing user notifications.
+
+**`createNotification(data)`** - Creates a new notification
+
+**Parameters:**
+```javascript
+{
+  userId: ObjectId,           // Required - User ID
+  title: String,             // Required - Notification title
+  message: String,           // Required - Notification message
+  type: String,              // Optional - 'info'|'success'|'warning'|'error' (default: 'info')
+  priority: String,          // Optional - 'low'|'medium'|'high' (default: 'medium')
+  expiresAt: Date            // Optional - Notification expiration date
+}
+```
+
+**Returns:** Promise<Notification> - Created notification document
+
+**Example Usage:**
+```javascript
+const notification = await createNotification({
+  userId: req.user._id,
+  title: "Welcome!",
+  message: "Welcome to Mushrif! Complete your profile to get started.",
+  type: "success",
+  priority: "high"
+});
+```
+
+## 🔧 Configuration Files
+
+### Passport Configuration (`config/passport.js`)
+Handles OAuth strategies for Google, Facebook, and GitHub authentication.
+
+**Configured Strategies:**
+- Google OAuth 2.0
+- Facebook OAuth 2.0
+- GitHub OAuth 2.0
+
+**Environment Variables Required:**
+```
+GOOGLE_CLIENT_ID
+GOOGLE_CLIENT_SECRET
+GOOGLE_CALLBACK_URL
+
+FACEBOOK_APP_ID
+FACEBOOK_APP_SECRET
+FACEBOOK_CALLBACK_URL
+
+GITHUB_CLIENT_ID
+GITHUB_CLIENT_SECRET
+GITHUB_CALLBACK_URL
+```
+
+### Database Connection (`config/connectToDB.js`)
+Establishes MongoDB connection with Mongoose.
+
+**Configuration:**
+- Connection pooling
+- Error handling
+- Automatic reconnection
+
+**Environment Variables Required:**
+```
+MONGODB_URI
+DB_USER
+DB_PASSWORD
+```
+
+## �🚧 Roadmap
 
 ### Phase 1 (Current)
 - [x] User authentication system
