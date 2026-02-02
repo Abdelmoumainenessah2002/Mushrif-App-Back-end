@@ -1,0 +1,26 @@
+{
+  "VALIDATION_ERROR": "بيانات غير صالحة",
+  "EMAIL_ALREADY_EXISTS": "مستخدم بهذا البريد الإلكتروني موجود بالفعل",
+  "PHONE_ALREADY_EXISTS": "مستخدم بهذا رقم الهاتف موجود بالفعل",
+  "INVALID_CREDENTIALS": "بريد إلكتروني أو كلمة مرور غير صحيحة",
+  "OAUTH_AUTH_FAILED": "فشل المصادقة عبر OAuth",
+  "USER_NOT_FOUND": "المستخدم غير موجود",
+  "NOT_OAUTH_USER": "هذا المنقط مخصص لمستخدمي OAuth فقط",
+  "PROFILE_ALREADY_COMPLETED": "تم استكمال الملف الشخصي بالفعل",
+  "INVALID_AGE": "يجب أن يكون عمرك 13 سنة على الأقل",
+  "EMPTY_REQUEST": "زمن الطلب فارغ. الرجاء تما رقم الهاتف والميلاد والنوع الاجتماعي.",
+  "INVALID_USER_ID": "معرف المستخدم غير صحيح",
+  "EMAIL_REQUIRED": "البريد الإلكتروني مطلوب",
+  "INVALID_TOKEN_FORMAT": "صيغة رمز غير صحيحة",
+  "INVALID_OR_EXPIRED_TOKEN": "رمز غير صحيح أو منتهي الصلاحية",
+  "USER_REGISTERED": "تم تسجيل المستخدم بنجاح",
+  "LOGIN_SUCCESS": "تم تسجيل الدخول بنجاح",
+  "OAUTH_LOGIN_SUCCESS": "تم تسجيل الدخول عبر OAuth بنجاح",
+  "PROFILE_COMPLETED": "تم استكمال الملف الشخصي بنجاح",
+  "RESET_EMAIL_SENT": "تم إرسال بريد إلكتروني لإعادة تعيين كلمة المرور بنجاح",
+  "PASSWORD_RESET_SUCCESS": "تم إعادة تعيين كلمة المرور بنجاح",
+  "TOKEN_VALID": "الرمز صحيح",
+  "WELCOME_TITLE": "مرحبًا بك في مشرف!",
+  "WELCOME_MESSAGE": "مرحبًا {{firstName}}، نرحب بك في مشرف! يسعدنا انضمامك إلينا. استكشف المميزات ولا تتردد في التواصل معنا إذا احتجت أي مساعدة."
+
+}
