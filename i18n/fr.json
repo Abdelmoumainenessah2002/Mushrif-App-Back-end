@@ -20,6 +20,6 @@
   "RESET_EMAIL_SENT": "E-mail de réinitialisation de mot de passe envoyé avec succès",
   "PASSWORD_RESET_SUCCESS": "Réinitialisation du mot de passe réussie",
   "TOKEN_VALID": "Le jeton est valide",
-   "WELCOME_TITLE": "Bienvenue sur Mushrif !",
+  "WELCOME_TITLE": "Bienvenue sur Mushrif !",
   "WELCOME_MESSAGE": "Bonjour {{firstName}}, bienvenue sur Mushrif ! Nous sommes ravis de vous compter parmi nous. Explorez nos fonctionnalités et contactez-nous si vous avez besoin d’aide."
 }
