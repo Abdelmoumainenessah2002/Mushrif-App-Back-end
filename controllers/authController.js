@@ -4,7 +4,6 @@ const {
   User, 
   validateRegisterUser, 
   validateLoginUser,
-  validateOAuthUser,
   validateCompleteProfile,
   validateUserId 
 } = require("../models/User");
@@ -12,6 +11,8 @@ const {generateUID, generateUsername} = require("../utils/generateUID");
 const {formatPhoneNumber} = require("../utils/phoneUtils");
 const { createLoginHistoryEntry } = require("../utils/loginHistoryHelper");
 const { createNotification } = require('../services/notification.service');
+const t = require("../utils/t");
+const messages = require("../constants/messages");
 
 /**
  * @desc    Register new user
@@ -25,7 +26,7 @@ module.exports.registerUserCtrl = asyncHandler(async (req, res) => {
   if (error) {
     return res.status(400).json({ 
       success: false,
-      message: error.details[0].message 
+      message: t(messages.VALIDATION_ERROR, req.lang) 
     });
   }
 
@@ -36,7 +37,7 @@ module.exports.registerUserCtrl = asyncHandler(async (req, res) => {
   if (existingUserByEmail) {
     return res.status(400).json({ 
       success: false,
-      message: "User with this email already exists" 
+      message: t(messages.EMAIL_ALREADY_EXISTS, req.lang) 
     });
   }
 
@@ -52,7 +53,7 @@ module.exports.registerUserCtrl = asyncHandler(async (req, res) => {
     if (existingUserByPhone) {
       return res.status(400).json({ 
         success: false,
-        message: "User with this phone number already exists" 
+        message: t(messages.PHONE_ALREADY_EXISTS, req.lang) 
       });
     }
   }
@@ -101,8 +102,10 @@ module.exports.registerUserCtrl = asyncHandler(async (req, res) => {
     await createNotification({
       userId: newUser._id,
       type: 'success',
-      title: 'Welcome to Mushrif!',
-      message: `Hello ${newUser.firstName}, welcome to Mushrif! We're excited to have you on board. Explore our features and let us know if you need any assistance. Happy exploring!`
+      title: messages.WELCOME_TITLE,
+      message: messages.WELCOME_MESSAGE,
+      lang: req.lang,
+      vars: { firstName: newUser.firstName }
     });
 
     newUser.hasWelcomeNotification = true;
@@ -132,7 +135,7 @@ module.exports.registerUserCtrl = asyncHandler(async (req, res) => {
 
   res.status(201).json({
     success: true,
-    message: "User registered successfully",
+    message: t(messages.USER_REGISTERED, req.lang),
     data: {
       user: userResponse,
       token
@@ -158,7 +161,7 @@ module.exports.completeProfileCtrl = asyncHandler(async (req, res) => {
   if (!req.body || Object.keys(req.body).length === 0) {
     return res.status(400).json({ 
       success: false,
-      message: "Request body is empty. Please provide phoneNumber, dateOfBirth, and gender." 
+      message: t(messages.EMPTY_REQUEST, req.lang) 
     });
   }
 
@@ -167,7 +170,7 @@ module.exports.completeProfileCtrl = asyncHandler(async (req, res) => {
   if (idError) {
     return res.status(400).json({ 
       success: false,
-      message: idError.details[0].message 
+      message: t(messages.INVALID_USER_ID, req.lang) 
     });
   }
 
@@ -176,7 +179,7 @@ module.exports.completeProfileCtrl = asyncHandler(async (req, res) => {
   if (error) {
     return res.status(400).json({ 
       success: false,
-      message: error.details[0].message 
+      message: t(messages.VALIDATION_ERROR, req.lang) 
     });
   }
 
@@ -188,7 +191,7 @@ module.exports.completeProfileCtrl = asyncHandler(async (req, res) => {
   if (!user) {
     return res.status(404).json({ 
       success: false,
-      message: "User not found" 
+      message: t(messages.USER_NOT_FOUND, req.lang) 
     });
   }
 
@@ -196,7 +199,7 @@ module.exports.completeProfileCtrl = asyncHandler(async (req, res) => {
   if (!user.isOAuthUser) {
     return res.status(400).json({ 
       success: false,
-      message: "This endpoint is only for OAuth users" 
+      message: t(messages.NOT_OAUTH_USER, req.lang) 
     });
   }
 
@@ -204,7 +207,7 @@ module.exports.completeProfileCtrl = asyncHandler(async (req, res) => {
   if (user.phoneNumber && user.dateOfBirth && user.gender) {
     return res.status(400).json({ 
       success: false,
-      message: "Profile is already completed" 
+      message: t(messages.PROFILE_ALREADY_COMPLETED, req.lang) 
     });
   }
 
@@ -221,7 +224,7 @@ module.exports.completeProfileCtrl = asyncHandler(async (req, res) => {
     if (existingUserByPhone) {
       return res.status(400).json({ 
         success: false,
-        message: "User with this phone number already exists" 
+        message: t(messages.PHONE_ALREADY_EXISTS, req.lang) 
       });
     }
   }
@@ -232,7 +235,7 @@ module.exports.completeProfileCtrl = asyncHandler(async (req, res) => {
   if (new Date(dateOfBirth) > minAge) {
     return res.status(400).json({ 
       success: false,
-      message: "You must be at least 13 years old" 
+      message: t(messages.INVALID_AGE, req.lang) 
     });
   }
 
@@ -266,7 +269,7 @@ module.exports.completeProfileCtrl = asyncHandler(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: "Profile completed successfully",
+    message: t(messages.PROFILE_COMPLETED, req.lang),
     data: {
       user: userResponse
     }
@@ -286,7 +289,7 @@ module.exports.loginUserCtrl = asyncHandler(async (req, res) => {
   if (error) {
     return res.status(400).json({ 
       success: false,
-      message: error.details[0].message 
+      message: t(messages.VALIDATION_ERROR, req.lang) 
     });
   }
 
@@ -297,7 +300,7 @@ module.exports.loginUserCtrl = asyncHandler(async (req, res) => {
   if (!user) {
     return res.status(400).json({ 
       success: false,
-      message: "Invalid email or password" 
+      message: t(messages.INVALID_CREDENTIALS, req.lang) 
     });
   }
 
@@ -306,7 +309,7 @@ module.exports.loginUserCtrl = asyncHandler(async (req, res) => {
   if (!isMatch) {
     return res.status(400).json({ 
       success: false,
-      message: "Invalid email or password" 
+      message: t(messages.INVALID_CREDENTIALS, req.lang) 
     });
   }
 
@@ -332,7 +335,7 @@ module.exports.loginUserCtrl = asyncHandler(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: "User logged in successfully",
+    message: t(messages.LOGIN_SUCCESS, req.lang),
     data: {
       token
     }
