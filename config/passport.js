@@ -6,6 +6,8 @@ const GitHubStrategy = require('passport-github2').Strategy;
 const fetch = require('node-fetch');
 const { User } = require('../models/User');
 const { generateUID, generateUsername } = require('../utils/generateUID');
+const t = require('../utils/t');
+const messages = require('../constants/messages');
 
 // Google OAuth Strategy
 passport.use(new GoogleStrategy({
