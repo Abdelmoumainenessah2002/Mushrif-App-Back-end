@@ -4,6 +4,7 @@ const passport = require("./config/passport");
 const connectToDb = require("./config/connectToDB");
 const path = require('path');
 const cors = require("cors");
+const langMiddleware = require("./middlewares/lang.middleware");
 
 require('dotenv').config();
 
@@ -26,6 +27,9 @@ app.use(cors({
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Language middleware - extracts language from accept-language header
+app.use(langMiddleware);
 
 // Session configuration for OAuth
 app.use(session({
