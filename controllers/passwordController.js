@@ -6,6 +6,8 @@ const VerificationToken = require('../models/VerificationToken');
 const createVerificationToken = require('../services/verificationToken.service');
 const sendEmail = require('../services/email.service');
 const resetPasswordEmail = require('../emails/resetPasswordEmail.template');
+const t = require('../utils/t');
+const messages = require('../constants/messages');
 
 /**
  * @desc Forgot password
@@ -22,14 +24,15 @@ module.exports.forgotPassword = asyncHandler(async (req, res) => {
   if (!email) {
     return res.status(400).json({
       success : false,
-      message: 'Email is required'});
+      message: t(messages.EMAIL_REQUIRED, req.lang)
+    });
   }
 
   const {error} = await validateEmail({email});
   if (error) {
     return res.status(400).json({
       success: false,
-      message: error.details[0].message
+      message: t(messages.VALIDATION_ERROR, req.lang)
     });
   }
 
@@ -39,7 +42,7 @@ module.exports.forgotPassword = asyncHandler(async (req, res) => {
   if (!user) {
     return res.status(400).json({
       success: false,
-      message: 'User not found'
+      message: t(messages.USER_NOT_FOUND, req.lang)
     });
   }
 
@@ -53,18 +56,19 @@ module.exports.forgotPassword = asyncHandler(async (req, res) => {
 
   const html = resetPasswordEmail({
     resetLink,
-    logoUrl: `${process.env.API_URL}/public/images/logo.png`
+    logoUrl: `${process.env.API_URL}/public/images/logo.png`,
+    lang: req.lang
   });
 
   await sendEmail({
     to: user.email,
-    subject: 'Reset your Mushrif password',
+    subject: t(messages.RESET_EMAIL_SENT, req.lang),
     html
   });
 
   res.status(200).json({
     success: true,
-    message: 'reset password email sent'
+    message: t(messages.RESET_EMAIL_SENT, req.lang)
   });
 });
 
@@ -82,7 +86,7 @@ module.exports.resetPassword = asyncHandler(async (req, res) => {
   if (error) {
     return res.status(400).json({
       success: false,
-      message: error.details[0].message
+      message: t(messages.VALIDATION_ERROR, req.lang)
     });
   }
 
@@ -90,7 +94,7 @@ module.exports.resetPassword = asyncHandler(async (req, res) => {
   if (!isValidTokenFormat) {
     return res.status(400).json({
       success: false,
-      message: 'Invalid token format'
+      message: t(messages.INVALID_TOKEN_FORMAT, req.lang)
     });
   }
 
@@ -100,14 +104,18 @@ module.exports.resetPassword = asyncHandler(async (req, res) => {
   });
 
   if (!verificationToken) {
-    res.status(400);
-    throw new Error('Invalid or expired token');
+    return res.status(400).json({
+      success: false,
+      message: t(messages.INVALID_OR_EXPIRED_TOKEN, req.lang)
+    });
   }
 
   const user = await User.findById(verificationToken.userId);
   if (!user) {
-    res.status(400);
-    throw new Error('User not found');
+    return res.status(400).json({
+      success: false,
+      message: t(messages.USER_NOT_FOUND, req.lang)
+    });
   }
 
   user.password = await bcrypt.hash(newPassword, 10);
@@ -116,7 +124,8 @@ module.exports.resetPassword = asyncHandler(async (req, res) => {
   await VerificationToken.deleteOne({ _id: verificationToken._id });
 
   res.status(200).json({
-    message: 'Password reset successful'
+    success: true,
+    message: t(messages.PASSWORD_RESET_SUCCESS, req.lang)
   });
 });
 
@@ -135,11 +144,17 @@ module.exports.validateResetToken = asyncHandler(async (req, res) => {
   });
 
   if (!exists) {
-    res.status(400);
-    throw new Error('Invalid or expired token');
+    return res.status(400).json({
+      success: false,
+      message: t(messages.INVALID_OR_EXPIRED_TOKEN, req.lang)
+    });
   }
 
-  res.status(200).json({ valid: true });
+  res.status(200).json({
+    success: true,
+    message: t(messages.TOKEN_VALID, req.lang),
+    valid: true
+  });
 });
 
 
