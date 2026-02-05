@@ -13,6 +13,8 @@
   "EMAIL_REQUIRED": "البريد الإلكتروني مطلوب",
   "INVALID_TOKEN_FORMAT": "صيغة رمز غير صحيحة",
   "INVALID_OR_EXPIRED_TOKEN": "رمز غير صحيح أو منتهي الصلاحية",
+  "NO_TOKEN_PROVIDED": "لم يتم توفير أي رمز",
+  "NOT_AUTHORIZED": "غير مصرح",
   "USER_REGISTERED": "تم تسجيل المستخدم بنجاح",
   "LOGIN_SUCCESS": "تم تسجيل الدخول بنجاح",
   "OAUTH_LOGIN_SUCCESS": "تم تسجيل الدخول عبر OAuth بنجاح",
@@ -21,6 +23,12 @@
   "PASSWORD_RESET_SUCCESS": "تم إعادة تعيين كلمة المرور بنجاح",
   "TOKEN_VALID": "الرمز صحيح",
   "WELCOME_TITLE": "مرحبًا بك في مشرف!",
-  "WELCOME_MESSAGE": "مرحبًا {{firstName}}، نرحب بك في مشرف! يسعدنا انضمامك إلينا. استكشف المميزات ولا تتردد في التواصل معنا إذا احتجت أي مساعدة."
-
+  "WELCOME_MESSAGE": "مرحبًا {{firstName}}، نرحب بك في مشرف! يسعدنا انضمامك إلينا. استكشف المميزات ولا تتردد في التواصل معنا إذا احتجت أي مساعدة.",
+  "PROFILE_UPDATED": "تم تحديث الملف الشخصي بنجاح",
+  "NO_IMAGE_PROVIDED": "لم يتم توفير صورة",
+  "PROFILE_PHOTO_UPDATED": "تم تحديث صورة الملف الشخصي بنجاح",
+  "ONLY_IMAGES_ALLOWED": "يسمح فقط بملفات الصور",
+  "FILE_TOO_LARGE": "حجم الملف يتجاوز الحد الأقصى البالغ 20 ميجابايت",
+  "CLOUDINARY_DELETE_ERROR": "حدث خطأ في الخادم أثناء حذف الصورة",
+  "CLOUDINARY_DELETE_MULTIPLE_ERROR": "حدث خطأ في الخادم أثناء حذف الصور"
 }

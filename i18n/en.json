@@ -13,6 +13,8 @@
   "EMAIL_REQUIRED": "Email is required",
   "INVALID_TOKEN_FORMAT": "Invalid token format",
   "INVALID_OR_EXPIRED_TOKEN": "Invalid or expired token",
+  "NO_TOKEN_PROVIDED": "No token provided",
+  "NOT_AUTHORIZED": "Not authorized",
   "USER_REGISTERED": "User registered successfully",
   "LOGIN_SUCCESS": "User logged in successfully",
   "OAUTH_LOGIN_SUCCESS": "OAuth login successful",
@@ -21,5 +23,12 @@
   "PASSWORD_RESET_SUCCESS": "Password reset successful",
   "TOKEN_VALID": "Token is valid",
   "WELCOME_TITLE": "Welcome to Mushrif!",
-  "WELCOME_MESSAGE": "Hello {{firstName}}, welcome to Mushrif! We're excited to have you on board. Explore our features and let us know if you need any assistance."
+  "WELCOME_MESSAGE": "Hello {{firstName}}, welcome to Mushrif! We're excited to have you on board. Explore our features and let us know if you need any assistance.",
+  "PROFILE_UPDATED": "Profile updated successfully",
+  "NO_IMAGE_PROVIDED": "No image provided",
+  "PROFILE_PHOTO_UPDATED": "Profile photo updated successfully",
+  "ONLY_IMAGES_ALLOWED": "Only image files are allowed",
+  "FILE_TOO_LARGE": "File size exceeds the maximum limit of 20MB",
+  "CLOUDINARY_DELETE_ERROR": "Internal server error occurred while deleting image",
+  "CLOUDINARY_DELETE_MULTIPLE_ERROR": "Internal server error occurred while deleting images"
 }
