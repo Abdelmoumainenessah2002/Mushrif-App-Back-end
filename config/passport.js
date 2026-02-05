@@ -78,7 +78,6 @@ passport.use(new GoogleStrategy({
       firstName: profile.name.givenName || profile.displayName.split(' ')[0],
       lastName: profile.name.familyName || profile.displayName.split(' ')[1] || 'User',
       email: profile.emails[0].value.toLowerCase(),
-      isOAuthUser: true,
       primaryProvider: 'google',
       profilePhoto: {
         url: profile.photos[0]?.value || "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png",
@@ -183,7 +182,6 @@ passport.use(new FacebookStrategy({
       firstName: profile.name?.givenName || profile.displayName.split(' ')[0],
       lastName: profile.name?.familyName || profile.displayName.split(' ')[1] || 'User',
       email: email || `${profile.id}@facebook.temp`, // Fallback email if not provided
-      isOAuthUser: true,
       primaryProvider: 'facebook',
       profilePhoto: {
         url: profile.photos[0]?.value || "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png",
@@ -300,7 +298,6 @@ passport.use(new GitHubStrategy({
       firstName: profile.name?.givenName || profile.displayName?.split(' ')[0] || profile.username,
       lastName: profile.name?.familyName || profile.displayName?.split(' ')[1] || 'User',
       email: email || `${profile.id}@github.temp`,
-      isOAuthUser: true,
       primaryProvider: 'github',
       profilePhoto: {
         url: profile.photos[0]?.value || "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png",
