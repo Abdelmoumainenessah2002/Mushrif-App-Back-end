@@ -20,6 +20,8 @@ const messages = require("../constants/messages");
  * @route   /api/auth/register
  * @access  Public
  */
+
+
 module.exports.registerUserCtrl = asyncHandler(async (req, res) => {
   // Validate request body
   const { error } = validateRegisterUser(req.body);
@@ -30,7 +32,7 @@ module.exports.registerUserCtrl = asyncHandler(async (req, res) => {
     });
   }
 
-  const { firstName, lastName, email, phoneNumber, dateOfBirth, gender, password } = req.body;
+  const { userName, firstName, lastName, email, phoneNumber, dateOfBirth, gender, password } = req.body;
 
   // Check if user already exists by email
   const existingUserByEmail = await User.findOne({ email: email.toLowerCase() });
