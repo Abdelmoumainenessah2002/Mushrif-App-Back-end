@@ -32,7 +32,7 @@ module.exports.registerUserCtrl = asyncHandler(async (req, res) => {
     });
   }
 
-  const { userName, firstName, lastName, email, phoneNumber, dateOfBirth, gender, password } = req.body;
+  const { firstName, lastName, email, phoneNumber, dateOfBirth, gender, password } = req.body;
 
   // Check if user already exists by email
   const existingUserByEmail = await User.findOne({ email: email.toLowerCase() });
@@ -154,18 +154,7 @@ module.exports.registerUserCtrl = asyncHandler(async (req, res) => {
  */
 
 module.exports.completeProfileCtrl = asyncHandler(async (req, res) => {
-  // Debug logs
-  console.log('Request body:', req.body);
-  console.log('Request params:', req.params);
-  console.log('Content-Type:', req.get('Content-Type'));
 
-  // Check if req.body exists
-  if (!req.body || Object.keys(req.body).length === 0) {
-    return res.status(400).json({ 
-      success: false,
-      message: t(messages.EMPTY_REQUEST, req.lang) 
-    });
-  }
 
   // Validate user ID parameter
   const { error: idError } = validateUserId(req.params);
@@ -181,7 +170,7 @@ module.exports.completeProfileCtrl = asyncHandler(async (req, res) => {
   if (error) {
     return res.status(400).json({ 
       success: false,
-      message: t(messages.VALIDATION_ERROR, req.lang) 
+      message: t(messages.VALIDATION_ERROR, req.lang)
     });
   }
 
@@ -193,7 +182,7 @@ module.exports.completeProfileCtrl = asyncHandler(async (req, res) => {
   if (!user) {
     return res.status(404).json({ 
       success: false,
-      message: t(messages.USER_NOT_FOUND, req.lang) 
+      message: t(messages.USER_NOT_FOUND, req.lang)
     });
   }
 
@@ -260,13 +249,6 @@ module.exports.completeProfileCtrl = asyncHandler(async (req, res) => {
     phoneNumber: user.phoneNumber,
     dateOfBirth: user.dateOfBirth,
     gender: user.gender,
-    isAdmin: user.isAdmin,
-    isVerified: user.isVerified,
-    isActive: user.isActive,
-    isOAuthUser: user.isOAuthUser,
-    primaryProvider: user.primaryProvider,
-    createdAt: user.createdAt,
-    updatedAt: user.updatedAt
   };
 
   res.status(200).json({
