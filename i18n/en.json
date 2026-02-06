@@ -11,6 +11,8 @@
   "EMPTY_REQUEST": "Request body is empty. Please provide phoneNumber, dateOfBirth, and gender.",
   "INVALID_USER_ID": "Invalid user ID",
   "EMAIL_REQUIRED": "Email is required",
+  "TOO_MANY_EMAILS": "Too many password reset requests from this IP, please try again after 15 minutes",
+  "EMAIL_ALREADY_VERIFIED": "Email is already verified",
   "INVALID_TOKEN_FORMAT": "Invalid token format",
   "INVALID_OR_EXPIRED_TOKEN": "Invalid or expired token",
   "NO_TOKEN_PROVIDED": "No token provided",
@@ -30,5 +32,7 @@
   "ONLY_IMAGES_ALLOWED": "Only image files are allowed",
   "FILE_TOO_LARGE": "File size exceeds the maximum limit of 20MB",
   "CLOUDINARY_DELETE_ERROR": "Internal server error occurred while deleting image",
-  "CLOUDINARY_DELETE_MULTIPLE_ERROR": "Internal server error occurred while deleting images"
+  "CLOUDINARY_DELETE_MULTIPLE_ERROR": "Internal server error occurred while deleting images",
+  "VERIFY_EMAIL_SENT": "Verification email sent successfully",
+  "EMAIL_VERIFIED": "Email verified successfully"
 }

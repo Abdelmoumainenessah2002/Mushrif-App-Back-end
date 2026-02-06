@@ -5,12 +5,14 @@
   "INVALID_CREDENTIALS": "بريد إلكتروني أو كلمة مرور غير صحيحة",
   "OAUTH_AUTH_FAILED": "فشل المصادقة عبر OAuth",
   "USER_NOT_FOUND": "المستخدم غير موجود",
-  "NOT_OAUTH_USER": "هذا المنقط مخصص لمستخدمي OAuth فقط",
+  "NOT_OAUTH_USER": "هذه النقطة مخصصة فقط لمستخدمي OAuth",
   "PROFILE_ALREADY_COMPLETED": "تم استكمال الملف الشخصي بالفعل",
   "INVALID_AGE": "يجب أن يكون عمرك 13 سنة على الأقل",
   "EMPTY_REQUEST": "زمن الطلب فارغ. الرجاء تما رقم الهاتف والميلاد والنوع الاجتماعي.",
   "INVALID_USER_ID": "معرف المستخدم غير صحيح",
   "EMAIL_REQUIRED": "البريد الإلكتروني مطلوب",
+  "TOO_MANY_EMAILS": "عدد كبير من طلبات إعادة تعيين كلمة المرور من هذا العنوان IP، يرجى المحاولة مرة أخرى بعد 15 دقيقة",
+  "EMAIL_ALREADY_VERIFIED": "البريد الإلكتروني متحقق منه بالفعل",
   "INVALID_TOKEN_FORMAT": "صيغة رمز غير صحيحة",
   "INVALID_OR_EXPIRED_TOKEN": "رمز غير صحيح أو منتهي الصلاحية",
   "NO_TOKEN_PROVIDED": "لم يتم توفير أي رمز",
@@ -30,5 +32,8 @@
   "ONLY_IMAGES_ALLOWED": "يسمح فقط بملفات الصور",
   "FILE_TOO_LARGE": "حجم الملف يتجاوز الحد الأقصى البالغ 20 ميجابايت",
   "CLOUDINARY_DELETE_ERROR": "حدث خطأ في الخادم أثناء حذف الصورة",
-  "CLOUDINARY_DELETE_MULTIPLE_ERROR": "حدث خطأ في الخادم أثناء حذف الصور"
+  "CLOUDINARY_DELETE_MULTIPLE_ERROR": "حدث خطأ في الخادم أثناء حذف الصور",
+  "VERIFY_EMAIL_SENT": "تم إرسال بريد إلكتروني للتحقق بنجاح",
+  "EMAIL_VERIFIED": "تم التحقق من البريد الإلكتروني بنجاح"
+
 }

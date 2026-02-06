@@ -11,6 +11,8 @@
   "EMPTY_REQUEST": "Le corps de la requête est vide. Veuillez fournir numéro de téléphone, date de naissance et sexe.",
   "INVALID_USER_ID": "ID utilisateur invalide",
   "EMAIL_REQUIRED": "L'email est requis",
+  "TOO_MANY_EMAILS": "Trop de demandes de réinitialisation de mot de passe depuis cette IP, veuillez réessayer dans 15 minutes",
+  "EMAIL_ALREADY_VERIFIED": "Email déjà vérifié",
   "INVALID_TOKEN_FORMAT": "Format de jeton invalide",
   "INVALID_OR_EXPIRED_TOKEN": "Jeton invalide ou expiré",
   "NO_TOKEN_PROVIDED": "Aucun jeton fourni",
@@ -30,5 +32,7 @@
   "ONLY_IMAGES_ALLOWED": "Seuls les fichiers image sont autorisés",
   "FILE_TOO_LARGE": "La taille du fichier dépasse la limite maximale de 20 Mo",
   "CLOUDINARY_DELETE_ERROR": "Une erreur s'est produite sur le serveur lors de la suppression de l'image",
-  "CLOUDINARY_DELETE_MULTIPLE_ERROR": "Une erreur s'est produite sur le serveur lors de la suppression des images"
+  "CLOUDINARY_DELETE_MULTIPLE_ERROR": "Une erreur s'est produite sur le serveur lors de la suppression des images",
+  "VERIFY_EMAIL_SENT": "Email de vérification envoyé avec succès",
+  "EMAIL_VERIFIED": "Email vérifié avec succès"
 }
