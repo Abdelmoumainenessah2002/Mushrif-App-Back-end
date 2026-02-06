@@ -81,11 +81,6 @@ const userSchema = new mongoose.Schema({
         }
       }
     },
-    required: function() {
-      // Phone number only required for local/email-password registration
-      return this.primaryProvider === 'local';
-    },
-    default: null, // Allow null for OAuth users
   },
 
   dateOfBirth: {
@@ -121,9 +116,8 @@ const userSchema = new mongoose.Schema({
 
   password: {
     type: String,
-    required: function() {
-      // Password only required if not using OAuth
-      return !this.providers || this.providers.length === 0;
+    required: function () {
+      return this.authMethods?.includes("local");
     },
     minlength: [8, "Password must be at least 8 characters long"],
     maxlength: [255, "Password must be at most 255 characters long"],
@@ -151,11 +145,12 @@ const userSchema = new mongoose.Schema({
     }
   }],
 
-  // Indicate if account was created via OAuth
-  isOAuthUser: {
-    type: Boolean,
-    default: false
-  },
+  authMethods: {
+  type: [String],
+  enum: ["local", "google", "facebook", "github"],
+  required: true,
+},
+
 
   // Primary provider used for account creation
   primaryProvider: {
@@ -179,10 +174,24 @@ const userSchema = new mongoose.Schema({
    },
  },
 
- isAdmin: {
-  type: Boolean,
-  default: false,
- },
+ role: {
+  type: [String],
+  enum: ["user", "support_agent", "admin", "super_admin"],
+  default: "user",
+  index: true
+},
+
+roleMeta: {
+  promotedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    default: null
+  },
+  promotedAt: {
+    type: Date,
+    default: null
+  }
+},
 
  isVerified: {
   type: Boolean,
@@ -315,10 +324,9 @@ userSchema.methods.generateAuthToken = function () {
      uid: this.uid,
      username: this.username,
      email: this.email,
-     isAdmin: this.isAdmin,
+     role: this.role,
      isVerified: this.isVerified,
      isActive: this.isActive,
-     primaryProvider: this.primaryProvider
    };
  
    return jwt.sign(payload, process.env.JWT_SECRET, {
@@ -422,20 +430,16 @@ function validateUserProfileUpdate(obj) {
     firstName: Joi.string().min(3).max(50).trim(),
     lastName: Joi.string().min(3).max(50).trim(),
     phoneNumber: Joi.object({
-      countryCode: Joi.string().pattern(/^[+]\d{1,4}$/).messages({
+      countryCode: Joi.string().required().pattern(/^[+]\d{1,4}$/).messages({
         'string.pattern.base': 'Country code must be in format +XXX'
       }),
-      localNumber: Joi.string().pattern(/^\d{6,15}$/).messages({
+      localNumber: Joi.string().required().pattern(/^\d{6,15}$/).messages({
         'string.pattern.base': 'Local number must be 6-15 digits'
       }),
-      fullNumber: Joi.string().pattern(/^[+]?[1-9]\d{6,18}$/).messages({
+      fullNumber: Joi.string().required().pattern(/^[+]?[1-9]\d{6,18}$/).messages({
         'string.pattern.base': 'Please enter a valid phone number'
       })
     }).allow(null),
-    dateOfBirth: Joi.date().max('now').allow(null).messages({
-      'date.max': 'Date of birth cannot be in the future'
-    }),
-    gender: Joi.string().valid("male", "female", "other", "prefer_not_to_say").allow(null),
     bio: Joi.string().min(1).max(255).trim(),
     // Optional fields for profile updates
     socialMedia: Joi.array().items(
