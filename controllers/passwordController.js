@@ -127,6 +127,8 @@ module.exports.resetPassword = asyncHandler(async (req, res) => {
     success: true,
     message: t(messages.PASSWORD_RESET_SUCCESS, req.lang)
   });
+
+  // 
 });
 
 /**
