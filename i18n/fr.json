@@ -34,5 +34,9 @@
   "CLOUDINARY_DELETE_ERROR": "Une erreur s'est produite sur le serveur lors de la suppression de l'image",
   "CLOUDINARY_DELETE_MULTIPLE_ERROR": "Une erreur s'est produite sur le serveur lors de la suppression des images",
   "VERIFY_EMAIL_SENT": "Email de vérification envoyé avec succès",
-  "EMAIL_VERIFIED": "Email vérifié avec succès"
+  "EMAIL_VERIFIED": "Email vérifié avec succès",
+  "USER_SUSPENDED": "Utilisateur suspendu avec succès",
+  "USER_ALREADY_SUSPENDED": "L'utilisateur est déjà suspendu",
+  "USER_UNSUSPENDED": "Utilisateur réactivé avec succès",
+  "USER_ALREADY_UNSUSPENDED": "L'utilisateur est déjà réactivé"
 }

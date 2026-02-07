@@ -34,5 +34,9 @@
   "CLOUDINARY_DELETE_ERROR": "Internal server error occurred while deleting image",
   "CLOUDINARY_DELETE_MULTIPLE_ERROR": "Internal server error occurred while deleting images",
   "VERIFY_EMAIL_SENT": "Verification email sent successfully",
-  "EMAIL_VERIFIED": "Email verified successfully"
+  "EMAIL_VERIFIED": "Email verified successfully",
+  "USER_SUSPENDED": "User suspended successfully",
+  "USER_ALREADY_SUSPENDED": "User is already suspended",
+  "USER_UNSUSPENDED": "User unsuspended successfully",
+  "USER_ALREADY_UNSUSPENDED": "User is already unsuspended"
 }

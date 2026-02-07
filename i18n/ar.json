@@ -34,6 +34,10 @@
   "CLOUDINARY_DELETE_ERROR": "حدث خطأ في الخادم أثناء حذف الصورة",
   "CLOUDINARY_DELETE_MULTIPLE_ERROR": "حدث خطأ في الخادم أثناء حذف الصور",
   "VERIFY_EMAIL_SENT": "تم إرسال بريد إلكتروني للتحقق بنجاح",
-  "EMAIL_VERIFIED": "تم التحقق من البريد الإلكتروني بنجاح"
+  "EMAIL_VERIFIED": "تم التحقق من البريد الإلكتروني بنجاح",
+  "USER_SUSPENDED": "تم تعليق المستخدم بنجاح",
+  "USER_ALREADY_SUSPENDED": "المستخدم معلق بالفعل",
+  "USER_UNSUSPENDED": "تم تنشيط المستخدم بنجاح",
+  "USER_ALREADY_UNSUSPENDED": "المستخدم نشط بالفعل"
 
 }
