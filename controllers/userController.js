@@ -254,3 +254,99 @@ module.exports.validateVerificationTokenAndUpdateUserCtrl = asyncHandler(async (
   await VerificationToken.deleteOne({ _id: exists._id });
 
 });
+
+
+/**
+ * @desc suspend user account (for admin use only)
+ * @route /api/users/suspend/:id
+ * @method PUT
+ * @access Private (Admin only)
+ */
+
+
+module.exports.suspendUserAccountCtrl = asyncHandler(async (req, res) => {
+
+  // validate user ID
+  const { error } = validateUserId({ id: req.params.id });
+
+  if (error) {
+    return res.status(400).json({
+        success: false,
+        message: t(messages.INVALID_USER_ID, req.lang)
+    });
+  }
+
+  const user = await User.findById(req.params.id);
+
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: t(messages.USER_NOT_FOUND, req.lang)
+
+    });
+  }
+
+  // check if user is already suspended
+  if (!user.isActive) {
+    return res.status(400).json({
+      success: false,
+      message: t(messages.USER_ALREADY_SUSPENDED, req.lang)
+    });
+  }
+
+
+  // suspend the user
+  user.isActive = false;
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: t(messages.USER_SUSPENDED, req.lang)
+  });
+});
+
+
+/**
+ * @desc Unsuspend user account (for admin use only)
+ * @route /api/users/unsuspend/:id
+ * @method PUT
+ * @access Private (Admin only)
+ */
+
+module.exports.unsuspendUserAccountCtrl = asyncHandler(async (req, res) => {
+
+  // validate user ID
+  const { error } = validateUserId({ id: req.params.id });
+  if (error) {
+    return res.status(400).json({
+        success: false,
+        message: t(messages.INVALID_USER_ID, req.lang)
+    });
+  }
+
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: t(messages.USER_NOT_FOUND, req.lang)
+    });
+  }
+
+  // check if user is already active  
+  if (user.isActive) {
+    return res.status(400).json({
+      success: false,
+      message: t(messages.USER_ALREADY_UNSUSPENDED, req.lang)
+    });
+  }
+
+  // unsuspend the user
+  user.isActive = true;
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: t(messages.USER_UNSUSPENDED, req.lang)
+  });
+
+});
