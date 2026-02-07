@@ -5,8 +5,11 @@ const {
   updateUserProfileCtrl,
   updateUserProfilePhotoCtrl,
   verifyUserByEmailCtrl,
-  validateVerificationTokenAndUpdateUserCtrl
+  validateVerificationTokenAndUpdateUserCtrl,
+  suspendUserAccountCtrl,
+  unsuspendUserAccountCtrl
 } = require('../controllers/userController');
+
 
 const { uploadSingleImage } = require('../middlewares/upload.middleware');
 
@@ -20,5 +23,9 @@ router.patch(
 
 router.post('/:id/verify-email', verifyUserByEmailCtrl);
 router.get('/validate-email/:token', validateVerificationTokenAndUpdateUserCtrl);
+
+// suspended and unsuspended routes for admin
+router.put('/suspend/:id', suspendUserAccountCtrl);
+router.put('/unsuspend/:id', unsuspendUserAccountCtrl);
 
 module.exports = router;
