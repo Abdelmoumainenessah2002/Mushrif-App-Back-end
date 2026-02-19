@@ -5,27 +5,31 @@ const {
   updateUserProfileCtrl,
   updateUserProfilePhotoCtrl,
   verifyUserByEmailCtrl,
-  validateVerificationTokenAndUpdateUserCtrl,
+  validateEmailVerificationTokenCtrl,
+  verifyEmailAndUpdateUserCtrl,
   suspendUserAccountCtrl,
   unsuspendUserAccountCtrl
 } = require('../controllers/userController');
 
 
 const { uploadSingleImage } = require('../middlewares/upload.middleware');
+const { verifyTokenAndAdmin, verifyTokenAndOnlyUser } = require('../middlewares/verifyJWTToken.middleware');
 
-router.patch('/:id/profile', updateUserProfileCtrl);
+router.patch('/:id/profile',verifyTokenAndOnlyUser, updateUserProfileCtrl);
 
 router.patch(
   '/:id/profile-photo',
+  verifyTokenAndOnlyUser,
   uploadSingleImage,
   updateUserProfilePhotoCtrl
 );
 
-router.post('/:id/verify-email', verifyUserByEmailCtrl);
-router.get('/validate-email/:token', validateVerificationTokenAndUpdateUserCtrl);
+router.post('/:id/verify-email', verifyTokenAndOnlyUser, verifyUserByEmailCtrl);
+router.get('/validate-email/:token', validateEmailVerificationTokenCtrl);
+router.post('/verify-email', verifyEmailAndUpdateUserCtrl);
 
 // suspended and unsuspended routes for admin
-router.put('/suspend/:id', suspendUserAccountCtrl);
-router.put('/unsuspend/:id', unsuspendUserAccountCtrl);
+router.put('/suspend/:id', verifyTokenAndAdmin, suspendUserAccountCtrl);
+router.put('/unsuspend/:id', verifyTokenAndAdmin, unsuspendUserAccountCtrl);
 
 module.exports = router;
