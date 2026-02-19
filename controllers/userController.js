@@ -176,6 +176,12 @@ module.exports.verifyUserByEmailCtrl = asyncHandler(async (req, res) => {
     });
   }
 
+  // delete any existing verification tokens for this user to prevent multiple valid tokens
+  await VerificationToken.deleteMany({
+    userId: user._id,
+    type: 'VERIFY_EMAIL'
+  });
+
   // send verification email
   const token = await createVerificationToken(
       user._id,
@@ -206,15 +212,23 @@ module.exports.verifyUserByEmailCtrl = asyncHandler(async (req, res) => {
 
 
 /**
- * @desc Validate verification token and verify user's email
+ * @desc Validate email verification token
  * @route /api/users/validate-email/:token
  * @method GET
  * @access Public
  */
-module.exports.validateVerificationTokenAndUpdateUserCtrl = asyncHandler(async (req, res) => {
+module.exports.validateEmailVerificationTokenCtrl = asyncHandler(async (req, res) => {
   const { token } = req.params;
 
-  const exists = await VerificationToken.findOne({
+  const isValidTokenFormat = /^[a-f0-9]{64}$/.test(token);
+  if (!isValidTokenFormat) {
+    return res.status(400).json({
+      success: false,
+      message: t(messages.INVALID_OR_EXPIRED_TOKEN, req.lang)
+    });
+  }
+
+  const exists = await VerificationToken.exists({
     token,
     type: 'VERIFY_EMAIL'
   });
@@ -226,15 +240,49 @@ module.exports.validateVerificationTokenAndUpdateUserCtrl = asyncHandler(async (
     });
   }
 
-  const userId = exists.userId;
-  if (!userId) {
+  res.status(200).json({
+    success: true,
+    message: t(messages.TOKEN_VALID, req.lang),
+    valid: true
+  });
+});
+
+
+/**
+ * @desc Verify email and update user
+ * @route /api/users/verify-email
+ * @method POST
+ * @access Public
+ */
+module.exports.verifyEmailAndUpdateUserCtrl = asyncHandler(async (req, res) => {
+  const { token } = req.body;
+
+
+  // validate token format
+  const isValidTokenFormat = /^[a-f0-9]{64}$/.test(token);
+  if (!isValidTokenFormat) {
+    return res.status(400).json({
+      success: false,
+      message: t(messages.INVALID_TOKEN_FORMAT, req.lang)
+    });
+  }
+
+  // find the token in the database
+  const verificationToken = await VerificationToken.findOne({
+    token,
+    type: 'VERIFY_EMAIL'
+  });
+
+  // if token not found or expired, return error
+  if (!verificationToken) {
     return res.status(400).json({
       success: false,
       message: t(messages.INVALID_OR_EXPIRED_TOKEN, req.lang)
     });
   }
 
-  const user = await User.findById(userId);
+  // find the user associated with the token
+  const user = await User.findById(verificationToken.userId);
   if (!user) {
     return res.status(404).json({
       success: false,
@@ -242,18 +290,31 @@ module.exports.validateVerificationTokenAndUpdateUserCtrl = asyncHandler(async (
     });
   }
 
+  // if user is already verified, no need to verify again
+  if (user.isVerified) {
+    return res.status(400).json({
+      success: false,
+      message: t(messages.EMAIL_ALREADY_VERIFIED, req.lang)
+    });
+  }
+
+
+  // mark user as verified and save
   user.isVerified = true;
   await user.save();
 
+
+  // delete the token after successful verification
+  await VerificationToken.deleteOne({ _id: verificationToken._id });
+
+
+  // return success response
   res.status(200).json({
     success: true,
     message: t(messages.EMAIL_VERIFIED, req.lang)
   });
-
-  // delete the token after successful verification
-  await VerificationToken.deleteOne({ _id: exists._id });
-
 });
+
 
 
 /**
@@ -283,6 +344,16 @@ module.exports.suspendUserAccountCtrl = asyncHandler(async (req, res) => {
       success: false,
       message: t(messages.USER_NOT_FOUND, req.lang)
 
+    });
+  }
+
+  console.log("User role:", user.role[0]);
+
+  // check if the role of the user is super admin, if yes, prevent suspension
+  if (user.role.includes('super_admin')) {
+    return res.status(403).json({
+      success: false,
+      message: t(messages.CANNOT_SUSPEND_THIS_USER, req.lang)
     });
   }
 
@@ -329,6 +400,14 @@ module.exports.unsuspendUserAccountCtrl = asyncHandler(async (req, res) => {
     return res.status(404).json({
       success: false,
       message: t(messages.USER_NOT_FOUND, req.lang)
+    });
+  }
+
+  // check if the role of the user is super admin, if yes, prevent suspension
+  if (user.role === 'super_admin') {
+    return res.status(403).json({
+      success: false,
+      message: t(messages.CANNOT_UNSUSPEND_THIS_USER, req.lang)
     });
   }
 
