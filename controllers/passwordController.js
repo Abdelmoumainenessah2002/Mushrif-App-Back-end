@@ -16,8 +16,6 @@ const messages = require('../constants/messages');
  * @access Public
  */
 
-
-
 module.exports.forgotPassword = asyncHandler(async (req, res) => {
   const email = req.body?.email;
 
@@ -46,6 +44,15 @@ module.exports.forgotPassword = asyncHandler(async (req, res) => {
     });
   }
 
+  // check if the user primary provider is email/password
+  if (user.primaryProvider !== 'local' && !user.password) {
+    return res.status(400).json({
+      success: false,
+      message: t(messages.PASSWORD_RESET_NOT_AVAILABLE, req.lang)
+    });
+  }
+
+  // Create new token
   const token = await createVerificationToken(
     user._id,
     'RESET_PASSWORD',
@@ -73,6 +80,46 @@ module.exports.forgotPassword = asyncHandler(async (req, res) => {
 });
 
 
+
+//-----------------------------------------------------------------------------------------------
+
+
+
+/**
+ * @desc Validate reset token (optional but pro)
+ * @route /api/password/validate/:token
+ * @method GET
+ * @access Public
+ */
+module.exports.validateResetPasswordToken = asyncHandler(async (req, res) => {
+  const { token } = req.params;
+
+  const exists = await VerificationToken.exists({
+    token,
+    type: 'RESET_PASSWORD'
+  });
+
+  if (!exists) {
+    return res.status(400).json({
+      success: false,
+      message: t(messages.INVALID_OR_EXPIRED_TOKEN, req.lang)
+    });
+  }
+
+  res.status(200).json({
+    success: true,
+    message: t(messages.TOKEN_VALID, req.lang),
+    valid: true
+  });
+});
+
+
+
+//-----------------------------------------------------------------------------------------------
+
+
+
+
 /**
  * @desc Reset password
  * @route /api/password/reset
@@ -90,7 +137,7 @@ module.exports.resetPassword = asyncHandler(async (req, res) => {
     });
   }
 
-  const isValidTokenFormat = /^[a-zA-Z0-9]{32}$/.test(token);
+  const isValidTokenFormat = /^[a-f0-9]{64}$/.test(token);
   if (!isValidTokenFormat) {
     return res.status(400).json({
       success: false,
@@ -129,34 +176,6 @@ module.exports.resetPassword = asyncHandler(async (req, res) => {
   });
 
   // 
-});
-
-/**
- * @desc Validate reset token (optional but pro)
- * @route /api/password/validate/:token
- * @method GET
- * @access Public
- */
-module.exports.validateResetToken = asyncHandler(async (req, res) => {
-  const { token } = req.params;
-
-  const exists = await VerificationToken.exists({
-    token,
-    type: 'RESET_PASSWORD'
-  });
-
-  if (!exists) {
-    return res.status(400).json({
-      success: false,
-      message: t(messages.INVALID_OR_EXPIRED_TOKEN, req.lang)
-    });
-  }
-
-  res.status(200).json({
-    success: true,
-    message: t(messages.TOKEN_VALID, req.lang),
-    valid: true
-  });
 });
 
 
