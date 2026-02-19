@@ -5,9 +5,7 @@ const FacebookStrategy = require('passport-facebook').Strategy;
 const GitHubStrategy = require('passport-github2').Strategy;
 const fetch = require('node-fetch');
 const { User } = require('../models/User');
-const { generateUID, generateUsername } = require('../utils/generateUID');
-const t = require('../utils/t');
-const messages = require('../constants/messages');
+const oAuthService = require('../services/OAuth.service');
 
 // Google OAuth Strategy
 passport.use(new GoogleStrategy({
@@ -17,90 +15,25 @@ passport.use(new GoogleStrategy({
   passReqToCallback: true
 }, async (req, accessToken, refreshToken, profile, done) => {
   try {
-    // Get dynamic IP and User Agent from request
+    // Get dynamic IP from request
     const ipAddress = req.ip || 
                      req.connection.remoteAddress || 
                      req.socket.remoteAddress ||
                      req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
                      '127.0.0.1';
-    const userAgent = req.get('User-Agent') || 'OAuth-Google';
 
-    // Check if user already exists with this Google ID
-    let user = await User.findOne({ 
-      'providers.provider': 'google',
-      'providers.providerId': profile.id 
-    });
-
-    if (user) {
-      // Update last login info (full login history will be added by route handler)
-      user.lastLoginIP = ipAddress;
-      user.lastLoginTime = new Date();
-      await user.save();
-      return done(null, user);
-    }
-
-    // Check if user exists with this email
-    user = await User.findOne({ email: profile.emails[0].value.toLowerCase() });
-
-    if (user) {
-      // Add Google provider to existing user
-      const providerData = {
-        provider: 'google',
-        providerId: profile.id,
-        email: profile.emails[0].value.toLowerCase(),
-        displayName: profile.displayName,
-        photoURL: profile.photos[0]?.value,
-        accessToken,
-        refreshToken,
-        createdAt: new Date()
-      };
-
-      user.addProvider(providerData);
-      
-      // Update last login info (full login history will be added by route handler)
-      user.lastLoginIP = ipAddress;
-      user.lastLoginTime = new Date();
-      
-      await user.save();
-      return done(null, user);
-    }
-
-    // Create new user
-    const uid = await generateUID();
-    const username = await generateUsername(
-      profile.name.givenName || profile.displayName.split(' ')[0],
-      profile.name.familyName || profile.displayName.split(' ')[1] || 'User'
+    // Use OAuth service to handle user logic
+    const result = await oAuthService.handleOAuthUser(
+      profile,
+      'google',
+      { accessToken, refreshToken },
+      ipAddress
     );
 
-    const newUser = new User({
-      username,
-      uid,
-      firstName: profile.name.givenName || profile.displayName.split(' ')[0],
-      lastName: profile.name.familyName || profile.displayName.split(' ')[1] || 'User',
-      email: profile.emails[0].value.toLowerCase(),
-      primaryProvider: 'google',
-      profilePhoto: {
-        url: profile.photos[0]?.value || "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png",
-        publicId: null
-      },
-      providers: [{
-        provider: 'google',
-        providerId: profile.id,
-        email: profile.emails[0].value.toLowerCase(),
-        displayName: profile.displayName,
-        photoURL: profile.photos[0]?.value,
-        accessToken,
-        refreshToken,
-        createdAt: new Date()
-      }],
-      loginHistory: [],
-      lastLoginIP: ipAddress,
-      lastLoginTime: new Date()
-    });
+    // Validate user is active
+    oAuthService.validateUserStatus(result.user);
 
-    await newUser.save();
-    return done(null, newUser);
-
+    return done(null, result.user);
   } catch (error) {
     return done(error, null);
   }
@@ -115,96 +48,25 @@ passport.use(new FacebookStrategy({
   passReqToCallback: true
 }, async (req, accessToken, refreshToken, profile, done) => {
   try {
-    console.log(process.env.FACEBOOK_APP_ID);
-    // Get dynamic IP and User Agent from request
+    // Get dynamic IP from request
     const ipAddress = req.ip || 
                      req.connection.remoteAddress || 
                      req.socket.remoteAddress ||
                      req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
                      '127.0.0.1';
-    const userAgent = req.get('User-Agent') || 'OAuth-Facebook';
 
-    // Check if user already exists with this Facebook ID
-    let user = await User.findOne({ 
-      'providers.provider': 'facebook',
-      'providers.providerId': profile.id 
-    });
-
-    if (user) {
-      // Update last login info for returning Facebook user (full login history will be added by route handler)
-      user.lastLoginIP = ipAddress;
-      user.lastLoginTime = new Date();
-      
-      await user.save();
-      return done(null, user);
-    }
-
-    // Check if user exists with this email (if email is provided)
-    const email = profile.emails && profile.emails[0] ? profile.emails[0].value.toLowerCase() : null;
-    
-    if (email) {
-      user = await User.findOne({ email });
-
-      if (user) {
-        // Add Facebook provider to existing user
-        const providerData = {
-          provider: 'facebook',
-          providerId: profile.id,
-          email,
-          displayName: profile.displayName,
-          photoURL: profile.photos[0]?.value,
-          accessToken,
-          refreshToken,
-          createdAt: new Date()
-        };
-
-        user.addProvider(providerData);
-        
-        // Update last login info for existing user (full login history will be added by route handler)
-        user.lastLoginIP = ipAddress;
-        user.lastLoginTime = new Date();
-        
-        await user.save();
-        return done(null, user);
-      }
-    }
-
-    // Create new user
-    const uid = await generateUID();
-    const username = await generateUsername(
-      profile.name?.givenName || profile.displayName.split(' ')[0],
-      profile.name?.familyName || profile.displayName.split(' ')[1] || 'User'
+    // Use OAuth service to handle user logic
+    const result = await oAuthService.handleOAuthUser(
+      profile,
+      'facebook',
+      { accessToken, refreshToken },
+      ipAddress
     );
 
-    const newUser = new User({
-      username,
-      uid,
-      firstName: profile.name?.givenName || profile.displayName.split(' ')[0],
-      lastName: profile.name?.familyName || profile.displayName.split(' ')[1] || 'User',
-      email: email || `${profile.id}@facebook.temp`, // Fallback email if not provided
-      primaryProvider: 'facebook',
-      profilePhoto: {
-        url: profile.photos[0]?.value || "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png",
-        publicId: null
-      },
-      providers: [{
-        provider: 'facebook',
-        providerId: profile.id,
-        email: email || `${profile.id}@facebook.temp`,
-        displayName: profile.displayName,
-        photoURL: profile.photos[0]?.value,
-        accessToken,
-        refreshToken,
-        createdAt: new Date()
-      }],
-      loginHistory: [],
-      lastLoginIP: ipAddress,
-      lastLoginTime: new Date()
-    });
+    // Validate user is active
+    oAuthService.validateUserStatus(result.user);
 
-    await newUser.save();
-    return done(null, newUser);
-
+    return done(null, result.user);
   } catch (error) {
     return done(error, null);
   }
@@ -223,10 +85,9 @@ passport.use(new GitHubStrategy({
                      req.socket.remoteAddress ||
                      req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
                      '127.0.0.1';
-    const userAgent = req.get('User-Agent') || 'OAuth-GitHub';
 
-    // Fetch primary email from GitHub API
-    let primaryEmail = null;
+    // Fetch primary email from GitHub API if needed
+    let githubPrimaryEmail = null;
     try {
       const emailRes = await fetch('https://api.github.com/user/emails', {
         headers: {
@@ -240,87 +101,28 @@ passport.use(new GitHubStrategy({
       if (emailRes.ok && Array.isArray(emails)) {
         const primary = emails.find(e => e.primary && e.verified);
         if (primary) {
-          primaryEmail = primary.email.toLowerCase();
+          githubPrimaryEmail = primary.email.toLowerCase();
         }
       }
-    } catch (_) {}
-
-    const email = primaryEmail || 
-                  (profile.emails && profile.emails[0] ? profile.emails[0].value.toLowerCase() : null) ||
-                  `${profile.id}@github.temp`;
-
-    let user = await User.findOne({ 
-      'providers.provider': 'github',
-      'providers.providerId': profile.id 
-    });
-
-    if (user) {
-      // Update last login info (full login history will be added by route handler)
-      user.lastLoginIP = ipAddress;
-      user.lastLoginTime = new Date();
-      await user.save();
-      return done(null, user);
+    } catch (_) {
+      // GitHub API call failed, continue with profile data
     }
 
-    if (email && !email.endsWith('@github.temp')) {
-      user = await User.findOne({ email });
+    // Inject GitHub primary email into profile for service
+    profile.githubPrimaryEmail = githubPrimaryEmail;
 
-      if (user) {
-        const providerData = {
-          provider: 'github',
-          providerId: profile.id,
-          email,
-          displayName: profile.displayName || profile.username,
-          photoURL: profile.photos[0]?.value,
-          accessToken,
-          refreshToken,
-          createdAt: new Date()
-        };
-
-        user.addProvider(providerData);
-        // Update last login info (full login history will be added by route handler)
-        user.lastLoginIP = ipAddress;
-        user.lastLoginTime = new Date();
-        await user.save();
-        return done(null, user);
-      }
-    }
-
-    const uid = await generateUID();
-    const username = await generateUsername(
-      profile.name?.givenName || profile.displayName?.split(' ')[0] || profile.username,
-      profile.name?.familyName || profile.displayName?.split(' ')[1] || 'User'
+    // Use OAuth service to handle user logic
+    const result = await oAuthService.handleOAuthUser(
+      profile,
+      'github',
+      { accessToken, refreshToken },
+      ipAddress
     );
 
-    const newUser = new User({
-      username,
-      uid,
-      firstName: profile.name?.givenName || profile.displayName?.split(' ')[0] || profile.username,
-      lastName: profile.name?.familyName || profile.displayName?.split(' ')[1] || 'User',
-      email: email || `${profile.id}@github.temp`,
-      primaryProvider: 'github',
-      profilePhoto: {
-        url: profile.photos[0]?.value || "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png",
-        publicId: null
-      },
-      providers: [{
-        provider: 'github',
-        providerId: profile.id,
-        email: email || `${profile.id}@github.temp`,
-        displayName: profile.displayName || profile.username,
-        photoURL: profile.photos[0]?.value,
-        accessToken,
-        refreshToken,
-        createdAt: new Date()
-      }],
-      loginHistory: [],
-      lastLoginIP: ipAddress,
-      lastLoginTime: new Date()
-    });
+    // Validate user is active
+    oAuthService.validateUserStatus(result.user);
 
-    await newUser.save();
-    return done(null, newUser);
-
+    return done(null, result.user);
   } catch (error) {
     return done(error, null);
   }
