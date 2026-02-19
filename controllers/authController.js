@@ -288,6 +288,14 @@ module.exports.loginUserCtrl = asyncHandler(async (req, res) => {
     });
   }
 
+  // Check if user account is suspended
+  if (!user.isActive) {
+    return res.status(403).json({ 
+      success: false,
+      message: t(messages.ACCOUNT_SUSPENDED, req.lang) 
+    });
+  }
+
   // Check if password matches
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) {
