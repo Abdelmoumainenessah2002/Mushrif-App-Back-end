@@ -11,6 +11,7 @@
   "EMPTY_REQUEST": "Le corps de la requête est vide. Veuillez fournir numéro de téléphone, date de naissance et sexe.",
   "INVALID_USER_ID": "ID utilisateur invalide",
   "EMAIL_REQUIRED": "L'email est requis",
+  "PASSWORD_RESET_NOT_AVAILABLE": "La réinitialisation du mot de passe n'est pas disponible pour ce compte",
   "TOO_MANY_EMAILS": "Trop de demandes de réinitialisation de mot de passe depuis cette IP, veuillez réessayer dans 15 minutes",
   "EMAIL_ALREADY_VERIFIED": "Email déjà vérifié",
   "INVALID_TOKEN_FORMAT": "Format de jeton invalide",
@@ -38,5 +39,7 @@
   "USER_SUSPENDED": "Utilisateur suspendu avec succès",
   "USER_ALREADY_SUSPENDED": "L'utilisateur est déjà suspendu",
   "USER_UNSUSPENDED": "Utilisateur réactivé avec succès",
-  "USER_ALREADY_UNSUSPENDED": "L'utilisateur est déjà réactivé"
+  "USER_ALREADY_UNSUSPENDED": "L'utilisateur est déjà réactivé",
+  "CANNOT_SUSPEND_THIS_USER": "Vous ne pouvez pas suspendre cet utilisateur",
+  "CANNOT_UNSUSPEND_THIS_USER": "Vous ne pouvez pas réactiver cet utilisateur"
 }

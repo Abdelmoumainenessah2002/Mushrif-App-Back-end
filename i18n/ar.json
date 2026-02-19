@@ -12,6 +12,7 @@
   "INVALID_USER_ID": "معرف المستخدم غير صحيح",
   "EMAIL_REQUIRED": "البريد الإلكتروني مطلوب",
   "TOO_MANY_EMAILS": "عدد كبير من طلبات إعادة تعيين كلمة المرور من هذا العنوان IP، يرجى المحاولة مرة أخرى بعد 15 دقيقة",
+  "PASSWORD_RESET_NOT_AVAILABLE": "إعادة تعيين كلمة المرور غير متوفرة لهذا الحساب",
   "EMAIL_ALREADY_VERIFIED": "البريد الإلكتروني متحقق منه بالفعل",
   "INVALID_TOKEN_FORMAT": "صيغة رمز غير صحيحة",
   "INVALID_OR_EXPIRED_TOKEN": "رمز غير صحيح أو منتهي الصلاحية",
@@ -38,6 +39,8 @@
   "USER_SUSPENDED": "تم تعليق المستخدم بنجاح",
   "USER_ALREADY_SUSPENDED": "المستخدم معلق بالفعل",
   "USER_UNSUSPENDED": "تم تنشيط المستخدم بنجاح",
-  "USER_ALREADY_UNSUSPENDED": "المستخدم نشط بالفعل"
+  "USER_ALREADY_UNSUSPENDED": "المستخدم نشط بالفعل",
+  "CANNOT_SUSPEND_THIS_USER": "لا يمكنك تعليق هذا المستخدم",
+  "CANNOT_UNSUSPEND_THIS_USER": "لا يمكنك تنشيط هذا المستخدم"
 
 }
