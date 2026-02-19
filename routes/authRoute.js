@@ -31,9 +31,17 @@ router.get('/google/callback',
   async (req, res) => {
     try {
       if (!req.user) {
-        return res.status(400).json({ 
+        return res.status(401).json({ 
           success: false, 
           message: t(messages.OAUTH_AUTH_FAILED, req.lang)
+        });
+      }
+
+      // Check if user is suspended
+      if (!req.user.isActive) {
+        return res.status(403).json({ 
+          success: false, 
+          message: t(messages.ACCOUNT_SUSPENDED, req.lang) 
         });
       }
 
@@ -281,9 +289,17 @@ router.get('/facebook/callback',
   async (req, res) => {
     try {
       if (!req.user) {
-        return res.status(400).json({ 
+        return res.status(401).json({ 
           success: false, 
           message: t(messages.OAUTH_AUTH_FAILED, req.lang)
+        });
+      }
+
+      // Check if user is suspended
+      if (!req.user.isActive) {
+        return res.status(403).json({ 
+          success: false, 
+          message: t(messages.ACCOUNT_SUSPENDED, req.lang) 
         });
       }
 
@@ -534,9 +550,17 @@ router.get('/github/callback',
   async (req, res) => {
     try {
       if (!req.user) {
-        return res.status(400).json({ 
+        return res.status(401).json({ 
           success: false, 
           message: t(messages.OAUTH_AUTH_FAILED, req.lang)
+        });
+      }
+
+      // Check if user is suspended
+      if (!req.user.isActive) {
+        return res.status(403).json({ 
+          success: false, 
+          message: t(messages.ACCOUNT_SUSPENDED, req.lang) 
         });
       }
 
