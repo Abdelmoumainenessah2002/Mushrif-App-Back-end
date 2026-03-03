@@ -1,6 +1,3 @@
-const t = require('../utils/t');
-const messages = require('../constants/messages');
-
 module.exports = function resetPasswordEmail({
   resetLink,
   logoUrl,
