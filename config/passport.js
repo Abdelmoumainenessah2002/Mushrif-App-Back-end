@@ -6,6 +6,7 @@ const GitHubStrategy = require('passport-github2').Strategy;
 const fetch = require('node-fetch');
 const { User } = require('../models/User');
 const oAuthService = require('../services/OAuth.service');
+const messages = require('../constants/messages');
 
 // Google OAuth Strategy
 passport.use(new GoogleStrategy({
@@ -30,12 +31,21 @@ passport.use(new GoogleStrategy({
       ipAddress
     );
 
-    // Validate user is active
-    oAuthService.validateUserStatus(result.user);
+    if (result.error) {
+      return done(null, null, result.error);
+    }
+
+    const validation = oAuthService.validateUserStatus(result.user);
+    if (!validation.valid) {
+      return done(null, null, { statusCode: validation.statusCode, messageKey: validation.messageKey });
+    }
 
     return done(null, result.user);
   } catch (error) {
-    return done(error, null);
+    return done(null, null, {
+      statusCode: 500,
+      messageKey: messages.OAUTH_AUTH_FAILED
+    });
   }
 }));
 
@@ -63,12 +73,21 @@ passport.use(new FacebookStrategy({
       ipAddress
     );
 
-    // Validate user is active
-    oAuthService.validateUserStatus(result.user);
+    if (result.error) {
+      return done(null, null, result.error);
+    }
+
+    const validation = oAuthService.validateUserStatus(result.user);
+    if (!validation.valid) {
+      return done(null, null, { statusCode: validation.statusCode, messageKey: validation.messageKey });
+    }
 
     return done(null, result.user);
   } catch (error) {
-    return done(error, null);
+    return done(null, null, {
+      statusCode: 500,
+      messageKey: messages.OAUTH_AUTH_FAILED
+    });
   }
 }));
 
@@ -85,32 +104,7 @@ passport.use(new GitHubStrategy({
                      req.socket.remoteAddress ||
                      req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
                      '127.0.0.1';
-
-    // Fetch primary email from GitHub API if needed
-    let githubPrimaryEmail = null;
-    try {
-      const emailRes = await fetch('https://api.github.com/user/emails', {
-        headers: {
-          'Authorization': `token ${accessToken}`,
-          'User-Agent': 'Mushrif-App',
-          'Accept': 'application/vnd.github.v3+json'
-        }
-      });
-
-      const emails = await emailRes.json();
-      if (emailRes.ok && Array.isArray(emails)) {
-        const primary = emails.find(e => e.primary && e.verified);
-        if (primary) {
-          githubPrimaryEmail = primary.email.toLowerCase();
-        }
-      }
-    } catch (_) {
-      // GitHub API call failed, continue with profile data
-    }
-
-    // Inject GitHub primary email into profile for service
-    profile.githubPrimaryEmail = githubPrimaryEmail;
-
+    
     // Use OAuth service to handle user logic
     const result = await oAuthService.handleOAuthUser(
       profile,
@@ -119,12 +113,21 @@ passport.use(new GitHubStrategy({
       ipAddress
     );
 
-    // Validate user is active
-    oAuthService.validateUserStatus(result.user);
+    if (result.error) {
+      return done(null, null, result.error);
+    }
+
+    const validation = oAuthService.validateUserStatus(result.user);
+    if (!validation.valid) {
+      return done(null, null, { statusCode: validation.statusCode, messageKey: validation.messageKey });
+    }
 
     return done(null, result.user);
   } catch (error) {
-    return done(error, null);
+    return done(null, null, {
+      statusCode: 500,
+      messageKey: messages.OAUTH_AUTH_FAILED
+    });
   }
 }));
 
