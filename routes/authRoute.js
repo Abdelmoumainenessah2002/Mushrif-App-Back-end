@@ -26,58 +26,69 @@ router.get('/google',
   passport.authenticate('google', { scope: ['profile', 'email'] })
 );
 
-router.get('/google/callback', 
-  passport.authenticate('google', { session: false }),
-  async (req, res) => {
+router.get('/google/callback', (req, res, next) => {
+  passport.authenticate('google', { session: false }, async (err, user, info) => {
     try {
-      if (!req.user) {
-        return res.status(401).json({ 
-          success: false, 
+      if (err) {
+        return res.status(err.statusCode || 500).json({
+          success: false,
+          message: t(err.messageKey || messages.OAUTH_AUTH_FAILED, req.lang)
+        });
+      }
+      if (info && info.statusCode) {
+        return res.status(info.statusCode).json({
+          success: false,
+          message: t(info.messageKey, req.lang)
+        });
+      }
+      if (!user) {
+        return res.status(401).json({
+          success: false,
           message: t(messages.OAUTH_AUTH_FAILED, req.lang)
         });
       }
 
-      // Check if user is suspended
-      if (!req.user.isActive) {
-        return res.status(403).json({ 
-          success: false, 
-          message: t(messages.ACCOUNT_SUSPENDED, req.lang) 
+      // Check if user is suspended (redundant with strategy but safe)
+      if (!user.isActive) {
+        return res.status(403).json({
+          success: false,
+          message: t(messages.ACCOUNT_SUSPENDED, req.lang)
         });
       }
 
       // Create login history entry
       const loginEntry = await createLoginHistoryEntry(req, 'google', true);
-      
+
       // Add login history to user
-      if (!req.user.loginHistory) {
-        req.user.loginHistory = [];
+      if (!user.loginHistory) {
+        user.loginHistory = [];
       }
-      req.user.loginHistory.push(loginEntry);
-      
+      user.loginHistory.push(loginEntry);
+
       // Save user with login history
-      await req.user.save();
+      await user.save();
 
       // Create welcome notification (only once)
-      if (!req.user.hasWelcomeNotification) {
+      if (!user.hasWelcomeNotification) {
         await createNotification({
-          userId: req.user._id,
+          userId: user._id,
           type: 'success',
           title: messages.WELCOME_TITLE,
           message: messages.WELCOME_MESSAGE,
           lang: req.lang,
-          vars: { firstName: req.user.firstName }
+          vars: { firstName: user.firstName }
         });
 
-        req.user.hasWelcomeNotification = true;
-        await req.user.save();
+        user.hasWelcomeNotification = true;
+        await user.save();
       }
 
       // Generate JWT token
-      const token = req.user.generateAuthToken();
-      
+      const token = user.generateAuthToken();
+
       // Show success page with language-based content
       const pageTitle = t(messages.OAUTH_LOGIN_SUCCESS, req.lang);
-      
+
       res.send(`
         <!DOCTYPE html>
         <html dir="${req.lang === 'ar' ? 'rtl' : 'ltr'}">
@@ -208,15 +219,15 @@ router.get('/google/callback',
               <h3><span class="emoji">👤</span>User Information</h3>
               <div class="info-row">
                 <span class="label">Name:</span>
-                <span class="value">${req.user.firstName} ${req.user.lastName}</span>
+                <span class="value">${user.firstName} ${user.lastName}</span>
               </div>
               <div class="info-row">
                 <span class="label">Email:</span>
-                <span class="value">${req.user.email}</span>
+                <span class="value">${user.email}</span>
               </div>
               <div class="info-row">
                 <span class="label">Username:</span>
-                <span class="value">${req.user.username}</span>
+                <span class="value">${user.username}</span>
               </div>
             </div>
 
@@ -267,17 +278,16 @@ router.get('/google/callback',
         </body>
         </html>
       `);
-      
     } catch (error) {
       console.error('OAuth callback error:', error);
-      res.status(500).json({ 
-        success: false, 
+      res.status(500).json({
+        success: false,
         message: t(messages.OAUTH_AUTH_FAILED, req.lang),
-        error: error.message 
+        error: error.message
       });
     }
-  }
-);
+  })(req, res, next);
+});
 
 // Facebook OAuth routes
 router.get('/facebook',
@@ -285,59 +295,71 @@ router.get('/facebook',
 );
 
 router.get('/facebook/callback',
-  passport.authenticate('facebook', { session: false }),
-  async (req, res) => {
-    try {
-      if (!req.user) {
-        return res.status(401).json({ 
-          success: false, 
-          message: t(messages.OAUTH_AUTH_FAILED, req.lang)
-        });
-      }
+  (req, res, next) => {
+    passport.authenticate('facebook', { session: false }, async (err, user, info) => {
+      try {
+        if (err) {
+          return res.status(err.statusCode || 500).json({
+            success: false,
+            message: t(err.messageKey || messages.OAUTH_AUTH_FAILED, req.lang)
+          });
+        }
+        if (info && info.statusCode) {
+          return res.status(info.statusCode).json({
+            success: false,
+            message: t(info.messageKey, req.lang)
+          });
+        }
+        if (!user) {
+          return res.status(401).json({
+            success: false,
+            message: t(messages.OAUTH_AUTH_FAILED, req.lang)
+          });
+        }
 
-      // Check if user is suspended
-      if (!req.user.isActive) {
-        return res.status(403).json({ 
-          success: false, 
-          message: t(messages.ACCOUNT_SUSPENDED, req.lang) 
-        });
-      }
+        // Check if user is suspended
+        if (!user.isActive) {
+          return res.status(403).json({
+            success: false,
+            message: t(messages.ACCOUNT_SUSPENDED, req.lang)
+          });
+        }
 
-      // Create login history entry
-      const loginEntry = await createLoginHistoryEntry(req, 'facebook', true);
-      
-      // Add login history to user
-      if (!req.user.loginHistory) {
-        req.user.loginHistory = [];
-      }
-      req.user.loginHistory.push(loginEntry);
-      
-      // Save user with login history
-      await req.user.save();
+        // Create login history entry
+        const loginEntry = await createLoginHistoryEntry(req, 'facebook', true);
 
-      // Create welcome notification (only once)
-      if (!req.user.hasWelcomeNotification) {
-        await createNotification({
-          userId: req.user._id,
-          type: 'success',
-          title: messages.WELCOME_TITLE,
-          message: messages.WELCOME_MESSAGE,
-          lang: req.lang,
-          vars: { firstName: req.user.firstName }
-        });
+        // Add login history to user
+        if (!user.loginHistory) {
+          user.loginHistory = [];
+        }
+        user.loginHistory.push(loginEntry);
 
-        req.user.hasWelcomeNotification = true;
-        await req.user.save();
-      }
-      
-      // Generate JWT token
-      const token = req.user.generateAuthToken();
-      
-      // Show success page with language-based content
-      const pageTitle = t(messages.OAUTH_LOGIN_SUCCESS, req.lang);
-      
-      // Show success page with additional device info
-      res.send(`
+        // Save user with login history
+        await user.save();
+
+        // Create welcome notification (only once)
+        if (!user.hasWelcomeNotification) {
+          await createNotification({
+            userId: user._id,
+            type: 'success',
+            title: messages.WELCOME_TITLE,
+            message: messages.WELCOME_MESSAGE,
+            lang: req.lang,
+            vars: { firstName: user.firstName }
+          });
+
+          user.hasWelcomeNotification = true;
+          await user.save();
+        }
+
+        // Generate JWT token
+        const token = user.generateAuthToken();
+
+        // Show success page with language-based content
+        const pageTitle = t(messages.OAUTH_LOGIN_SUCCESS, req.lang);
+
+        // Show success page with additional device info
+        res.send(`
         <!DOCTYPE html>
         <html dir="${req.lang === 'ar' ? 'rtl' : 'ltr'}">
         <head>
@@ -467,15 +489,15 @@ router.get('/facebook/callback',
               <h3><span class="emoji">👤</span>User Information</h3>
               <div class="info-row">
                 <span class="label">Name:</span>
-                <span class="value">${req.user.firstName} ${req.user.lastName}</span>
+                <span class="value">${user.firstName} ${user.lastName}</span>
               </div>
               <div class="info-row">
                 <span class="label">Email:</span>
-                <span class="value">${req.user.email}</span>
+                <span class="value">${user.email}</span>
               </div>
               <div class="info-row">
                 <span class="label">Username:</span>
-                <span class="value">${req.user.username}</span>
+                <span class="value">${user.username}</span>
               </div>
             </div>
 
@@ -528,77 +550,89 @@ router.get('/facebook/callback',
       `);
     } catch (error) {
       console.error('OAuth callback error:', error);
-      res.status(500).json({ 
-        success: false, 
+      res.status(500).json({
+        success: false,
         message: t(messages.OAUTH_AUTH_FAILED, req.lang),
-        error: error.message 
+        error: error.message
       });
     }
-  }
-);
+  })(req, res, next);
+});
 
 // GitHub OAuth routes
 router.get('/github',
   passport.authenticate('github', {
-    scope: ['user:email'],
+    scope: ["read:user", "user:email"],
     prompt: 'consent'
   })
 );
 
 router.get('/github/callback',
-  passport.authenticate('github', { session: false }),
-  async (req, res) => {
-    try {
-      if (!req.user) {
-        return res.status(401).json({ 
-          success: false, 
-          message: t(messages.OAUTH_AUTH_FAILED, req.lang)
-        });
-      }
+  (req, res, next) => {
+    passport.authenticate('github', { session: false }, async (err, user, info) => {
+      try {
+        if (err) {
+          return res.status(err.statusCode || 500).json({
+            success: false,
+            message: t(err.messageKey || messages.OAUTH_AUTH_FAILED, req.lang)
+          });
+        }
+        if (info && info.statusCode) {
+          return res.status(info.statusCode).json({
+            success: false,
+            message: t(info.messageKey, req.lang)
+          });
+        }
+        if (!user) {
+          return res.status(401).json({
+            success: false,
+            message: t(messages.OAUTH_AUTH_FAILED, req.lang)
+          });
+        }
 
-      // Check if user is suspended
-      if (!req.user.isActive) {
-        return res.status(403).json({ 
-          success: false, 
-          message: t(messages.ACCOUNT_SUSPENDED, req.lang) 
-        });
-      }
+        // Check if user is suspended
+        if (!user.isActive) {
+          return res.status(403).json({
+            success: false,
+            message: t(messages.ACCOUNT_SUSPENDED, req.lang)
+          });
+        }
 
-      // Create login history entry
-      const loginEntry = await createLoginHistoryEntry(req, 'github', true);
-      
-      // Add login history to user
-      if (!req.user.loginHistory) {
-        req.user.loginHistory = [];
-      }
-      req.user.loginHistory.push(loginEntry);
-      
-      // Save user with login history
-      await req.user.save();
+        // Create login history entry
+        const loginEntry = await createLoginHistoryEntry(req, 'github', true);
 
-      // Create welcome notification (only once)
-      if (!req.user.hasWelcomeNotification) {
-        await createNotification({
-          userId: req.user._id,
-          type: 'success',
-          title: messages.WELCOME_TITLE,
-          message: messages.WELCOME_MESSAGE,
-          lang: req.lang,
-          vars: { firstName: req.user.firstName }
-        });
+        // Add login history to user
+        if (!user.loginHistory) {
+          user.loginHistory = [];
+        }
+        user.loginHistory.push(loginEntry);
 
-        req.user.hasWelcomeNotification = true;
-        await req.user.save();
-      }
-      
-      // Generate JWT token
-      const token = req.user.generateAuthToken();
-      
-      // Show success page with language-based content
-      const pageTitle = t(messages.OAUTH_LOGIN_SUCCESS, req.lang);
-      
-      // Show success page with additional device info
-      res.send(`
+        // Save user with login history
+        await user.save();
+
+        // Create welcome notification (only once)
+        if (!user.hasWelcomeNotification) {
+          await createNotification({
+            userId: user._id,
+            type: 'success',
+            title: messages.WELCOME_TITLE,
+            message: messages.WELCOME_MESSAGE,
+            lang: req.lang,
+            vars: { firstName: user.firstName }
+          });
+
+          user.hasWelcomeNotification = true;
+          await user.save();
+        }
+
+        // Generate JWT token
+        const token = user.generateAuthToken();
+
+        // Show success page with language-based content
+        const pageTitle = t(messages.OAUTH_LOGIN_SUCCESS, req.lang);
+
+        // Show success page with additional device info
+        res.send(`
         <!DOCTYPE html>
         <html dir="${req.lang === 'ar' ? 'rtl' : 'ltr'}">
         <head>
@@ -728,15 +762,15 @@ router.get('/github/callback',
               <h3><span class="emoji">👤</span>User Information</h3>
               <div class="info-row">
                 <span class="label">Name:</span>
-                <span class="value">${req.user.firstName} ${req.user.lastName}</span>
+                <span class="value">${user.firstName} ${user.lastName}</span>
               </div>
               <div class="info-row">
                 <span class="label">Email:</span>
-                <span class="value">${req.user.email}</span>
+                <span class="value">${user.email}</span>
               </div>
               <div class="info-row">
                 <span class="label">Username:</span>
-                <span class="value">${req.user.username}</span>
+                <span class="value">${user.username}</span>
               </div>
             </div>
 
@@ -788,14 +822,14 @@ router.get('/github/callback',
         </html>
       `);
     } catch (error) {
-      res.status(500).json({ 
-        success: false, 
+      res.status(500).json({
+        success: false,
         message: t(messages.OAUTH_AUTH_FAILED, req.lang),
-        error: error.message 
+        error: error.message
       });
     }
-  }
-);
+  })(req, res, next);
+});
 
 // Complete profile for OAuth users
 router.post('/complete-profile/:id', completeProfileCtrl);
