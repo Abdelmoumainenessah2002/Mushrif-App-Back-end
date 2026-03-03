@@ -2,6 +2,7 @@ const { User } = require('../models/User');
 const { generateUID, generateUsername } = require('../utils/generateUID');
 const t = require('../utils/t');
 const messages = require('../constants/messages');
+const { getGitHubPrimaryEmail } = require('../utils/getGithubEmailsHelper');
 
 /**
  * OAuth Service - Handles all OAuth-related business logic
@@ -18,22 +19,44 @@ const messages = require('../constants/messages');
  */
 async function handleOAuthUser(profile, provider, tokens, ipAddress) {
   try {
+
     // Step 1: Check if user exists with this provider ID
     let user = await findUserByProviderID(provider, profile.id);
 
     if (user) {
-      // User already connected to this OAuth provider
+      // Fail fast: do not mutate state if account is inactive
+      if (!isUserActive(user)) {
+        return {
+          success: false,
+          error: {
+            statusCode: 403,
+            messageKey: messages.ACCOUNT_SUSPENDED
+          }
+        };
+      }
+      // User already connected to this OAuth provider and is ACTIVE
       await updateUserLoginInfo(user, ipAddress);
-      return { user, isNewUser: false, isLinked: true };
+      return { user, isNewUser: false };
     }
 
     // Step 2: Check if user exists with this email
-    const email = extractEmail(profile, provider);
+    // Step 2: Check if user exists with this email
+    const email = await extractEmail(profile, provider, tokens);
     if (email && !email.endsWith('.temp')) {
       user = await User.findOne({ email });
 
       if (user) {
-        // User exists with same email - link the OAuth provider
+        // Fail fast: do not link provider or update anything if account is inactive
+        if (!isUserActive(user)) {
+          return {
+            success: false,
+            error: {
+              statusCode: 403,
+              messageKey: messages.ACCOUNT_SUSPENDED
+            }
+          };
+        }
+        // User exists with same email, is ACTIVE — safe to link and update
         await linkOAuthProvider(user, {
           provider,
           providerId: profile.id,
@@ -49,12 +72,18 @@ async function handleOAuthUser(profile, provider, tokens, ipAddress) {
       }
     }
 
-    // Step 3: Create new user
+    // Step 3: Create new user (no existing user found)
     user = await createNewOAuthUser(profile, provider, tokens, email, ipAddress);
     return { user, isNewUser: true, isLinked: false };
 
   } catch (error) {
-    throw new Error(`OAuth user handling failed: ${error.message}`);
+    return {
+      success: false,
+      error: {
+        statusCode: 500,
+        messageKey: messages.OAUTH_AUTH_FAILED
+      }
+    };
   }
 }
 
@@ -127,7 +156,8 @@ async function createNewOAuthUser(profile, provider, tokens, email, ipAddress) {
     }],
     loginHistory: [],
     lastLoginIP: ipAddress,
-    lastLoginTime: new Date()
+    lastLoginTime: new Date(),
+    isVerified: true,
   });
 
   return await newUser.save();
@@ -136,13 +166,17 @@ async function createNewOAuthUser(profile, provider, tokens, email, ipAddress) {
 /**
  * Extract email based on provider
  */
-function extractEmail(profile, provider) {
+async function extractEmail(profile, provider, tokens) {
   if (provider === 'facebook' && !profile.emails?.[0]?.value) {
     return `${profile.id}@facebook.temp`;
   }
 
   if (provider === 'github') {
-    return profile.emails?.[0]?.value?.toLowerCase() || null;
+    if (profile.githubPrimaryEmail) {
+      return profile.githubPrimaryEmail.toLowerCase();
+    } else {
+      return await getGitHubPrimaryEmail(tokens.accessToken);
+    }
   }
 
   // Google
@@ -181,15 +215,18 @@ function isUserActive(user) {
 
 /**
  * Validate user before login
- * Throws error if user is suspended
+ * Returns an object instead of throwing; use for controlled API responses.
+ * @returns {{ valid: true } | { valid: false, statusCode: number, messageKey: string }}
  */
 function validateUserStatus(user) {
   if (!isUserActive(user)) {
-    const error = new Error(messages.ACCOUNT_SUSPENDED);
-    error.statusCode = 403;
-    error.isSuspended = true;
-    throw error;
+    return {
+      valid: false,
+      statusCode: 403,
+      messageKey: messages.ACCOUNT_SUSPENDED
+    };
   }
+  return { valid: true };
 }
 
 module.exports = {
