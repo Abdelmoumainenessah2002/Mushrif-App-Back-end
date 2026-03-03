@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 const VerificationToken = require('../models/VerificationToken');
 
-async function createVerificationToken(userId, type, expiresInMinutes = 15) {
+async function createVerificationToken(userId, type, expiresInMinutes) {
   // Delete existing tokens of same type
   await VerificationToken.deleteMany({
     userId,
