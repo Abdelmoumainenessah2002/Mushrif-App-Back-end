@@ -1,14 +1,13 @@
 const bcrypt = require('bcryptjs');
 const asyncHandler = require('express-async-handler');
 
-const {User, validateEmail, validateNewPassword} = require('../models/User');
+const {User, validateEmail, validateNewPassword, validateUserId} = require('../models/User');
 const VerificationToken = require('../models/VerificationToken');
 const createVerificationToken = require('../services/verificationToken.service');
 const sendEmail = require('../services/email.service');
 const resetPasswordEmail = require('../emails/resetPasswordEmail.template');
 const t = require('../utils/t');
 const messages = require('../constants/messages');
-
 /**
  * @desc Forgot password
  * @method POST
@@ -180,3 +179,64 @@ module.exports.resetPassword = asyncHandler(async (req, res) => {
 
 
 
+//-----------------------------------------------------------------------------------------------
+
+
+
+
+/**
+ * @desc make passwords for oauth users
+ * @route /api/password/make-password/:id
+ * @method POST
+ * @access Private (only for oauth users)
+ */
+
+
+module.exports.makePasswordForOAuth = asyncHandler(async (req, res) => {
+  
+  // Validate user ID parameter
+  const { error: idError } = validateUserId(req.params);
+  if (idError) {
+    return res.status(400).json({ 
+      success: false,
+      message: t(messages.INVALID_USER_ID, req.lang) 
+    });
+  }
+
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: t(messages.USER_NOT_FOUND, req.lang)
+    });
+  }
+
+  // check if the user has a password
+  if (user.primaryProvider == 'local') {
+    return res.status(400).json({
+      success: false,
+      message: t(messages.PASSWORD_RESET_NOT_AVAILABLE, req.lang)
+    });
+  }
+
+  const password = req.body.password;
+  console.log(password);
+  const { error: passwordError } = await validateNewPassword({password: password});
+  if (passwordError) {
+    return res.status(400).json({
+      success: false,
+      message: t(messages.VALIDATION_ERROR, req.lang)
+    });
+  }
+
+  
+  const hashedPassword = await bcrypt.hash(password, 10);
+  user.password = hashedPassword;
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: t(messages.PASSWORD_RESET_SUCCESS, req.lang)
+  });
+
+});
