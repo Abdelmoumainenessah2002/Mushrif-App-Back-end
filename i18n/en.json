@@ -4,6 +4,7 @@
   "PHONE_ALREADY_EXISTS": "User with this phone number already exists",
   "INVALID_CREDENTIALS": "Invalid email or password",
   "OAUTH_AUTH_FAILED": "OAuth authentication failed",
+  "ACCOUNT_SUSPENDED": "Your account has been suspended",
   "USER_NOT_FOUND": "User not found",
   "NOT_OAUTH_USER": "This endpoint is only for OAuth users",
   "PROFILE_ALREADY_COMPLETED": "Profile is already completed",
@@ -41,5 +42,7 @@
   "USER_UNSUSPENDED": "User unsuspended successfully",
   "USER_ALREADY_UNSUSPENDED": "User is already unsuspended",
   "CANNOT_SUSPEND_THIS_USER": "You cannot suspend this user",
-  "CANNOT_UNSUSPEND_THIS_USER": "You cannot unsuspend this user"
+  "CANNOT_UNSUSPEND_THIS_USER": "You cannot unsuspend this user",
+  "OTP_SENT" : "Verification code sent successfully.",
+  "INVALID_OTP" : "Invalid verification code."
 }

@@ -4,6 +4,7 @@
   "PHONE_ALREADY_EXISTS": "مستخدم بهذا رقم الهاتف موجود بالفعل",
   "INVALID_CREDENTIALS": "بريد إلكتروني أو كلمة مرور غير صحيحة",
   "OAUTH_AUTH_FAILED": "فشل المصادقة عبر OAuth",
+  "ACCOUNT_SUSPENDED": "تم تعليق حسابك",
   "USER_NOT_FOUND": "المستخدم غير موجود",
   "NOT_OAUTH_USER": "هذه النقطة مخصصة فقط لمستخدمي OAuth",
   "PROFILE_ALREADY_COMPLETED": "تم استكمال الملف الشخصي بالفعل",
@@ -41,6 +42,8 @@
   "USER_UNSUSPENDED": "تم تنشيط المستخدم بنجاح",
   "USER_ALREADY_UNSUSPENDED": "المستخدم نشط بالفعل",
   "CANNOT_SUSPEND_THIS_USER": "لا يمكنك تعليق هذا المستخدم",
-  "CANNOT_UNSUSPEND_THIS_USER": "لا يمكنك تنشيط هذا المستخدم"
+  "CANNOT_UNSUSPEND_THIS_USER": "لا يمكنك تنشيط هذا المستخدم",
+  "OTP_SENT" : "تم إرسال رمز التحقق بنجاح.",
+  "INVALID_OTP" : "رمز التحقق غير صالح."
 
 }

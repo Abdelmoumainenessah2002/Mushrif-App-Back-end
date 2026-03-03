@@ -4,6 +4,7 @@
   "PHONE_ALREADY_EXISTS": "Un utilisateur avec ce numéro de téléphone existe déjà",
   "INVALID_CREDENTIALS": "Email ou mot de passe invalide",
   "OAUTH_AUTH_FAILED": "L'authentification OAuth a échoué",
+  "ACCOUNT_SUSPENDED": "Votre compte a été suspendu",
   "USER_NOT_FOUND": "Utilisateur non trouvé",
   "NOT_OAUTH_USER": "Ce point de terminaison est réservé aux utilisateurs OAuth",
   "PROFILE_ALREADY_COMPLETED": "Le profil est déjà complet",
@@ -41,5 +42,7 @@
   "USER_UNSUSPENDED": "Utilisateur réactivé avec succès",
   "USER_ALREADY_UNSUSPENDED": "L'utilisateur est déjà réactivé",
   "CANNOT_SUSPEND_THIS_USER": "Vous ne pouvez pas suspendre cet utilisateur",
-  "CANNOT_UNSUSPEND_THIS_USER": "Vous ne pouvez pas réactiver cet utilisateur"
+  "CANNOT_UNSUSPEND_THIS_USER": "Vous ne pouvez pas réactiver cet utilisateur",
+  "OTP_SENT" : "Le code de vérification a été envoyé avec succès.",
+  "INVALID_OTP" : "Le code de vérification est invalide."
 }
