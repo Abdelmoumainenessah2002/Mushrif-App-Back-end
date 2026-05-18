@@ -11,6 +11,7 @@ function verifyToken(req, res, next) {
         const token = authToken.split(" ")[1];
         try {
             const decodedPayload = jwt.verify(token, process.env.JWT_SECRET);
+            console.log("Decoded JWT Payload:", decodedPayload);
             req.user = decodedPayload;
             next();
         } catch (error) {
@@ -50,6 +51,7 @@ function verifyTokenAndOnlyUser(req, res, next) {
                 success: false,
                 message: t(messages.NOT_AUTHORIZED, req.lang)
              });
+             
         }
         next();
     }

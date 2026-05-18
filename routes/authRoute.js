@@ -9,6 +9,7 @@ const { createLoginHistoryEntry } = require('../utils/loginHistoryHelper');
 const { createNotification } = require('../services/notification.service');
 const t = require('../utils/t');
 const messages = require('../constants/messages');
+const { verifyTokenAndOnlyUser } = require('../middlewares/verifyJWTToken.middleware');
 
 
 
@@ -19,11 +20,11 @@ router.post('/register', registerUserCtrl);
 router.post('/login', loginUserCtrl);
 
 // Complete profile for OAuth users
-router.post('/complete-profile/:id', completeProfileCtrl);
+router.post('/complete-profile/:id',verifyTokenAndOnlyUser, completeProfileCtrl);
 
 // Google OAuth routes
 router.get('/google', 
-  passport.authenticate('google', { scope: ['profile', 'email'] })
+  passport.authenticate('google', { scope: ['profile', 'email'], state: true })
 );
 
 router.get('/google/callback', (req, res, next) => {
@@ -291,7 +292,7 @@ router.get('/google/callback', (req, res, next) => {
 
 // Facebook OAuth routes
 router.get('/facebook',
-  passport.authenticate('facebook', { scope: ['email'] })
+  passport.authenticate('facebook', { scope: ['email'], state: true })
 );
 
 router.get('/facebook/callback',
@@ -563,7 +564,8 @@ router.get('/facebook/callback',
 router.get('/github',
   passport.authenticate('github', {
     scope: ["read:user", "user:email"],
-    prompt: 'consent'
+    prompt: 'consent',
+    state: true
   })
 );
 
@@ -832,6 +834,9 @@ router.get('/github/callback',
 });
 
 // Complete profile for OAuth users
-router.post('/complete-profile/:id', completeProfileCtrl);
+router.post('/complete-profile/:id', (req, res, next) => {
+  console.log("ROUTE HIT");
+  next();
+}, completeProfileCtrl);
 
 module.exports = router;

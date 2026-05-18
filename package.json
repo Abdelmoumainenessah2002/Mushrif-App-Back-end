@@ -13,6 +13,7 @@
     "axios": "^1.13.6",
     "bcryptjs": "^3.0.2",
     "cloudinary": "^2.9.0",
+    "connect-mongo": "^6.0.0",
     "cors": "^2.8.6",
     "crypto": "^1.0.1",
     "csv-parser": "^3.2.0",
@@ -25,6 +26,7 @@
     "joi-password-complexity": "^5.2.0",
     "json2csv": "^6.0.0-alpha.2",
     "jsonwebtoken": "^9.0.2",
+    "libphonenumber-js": "^1.12.41",
     "mongoose": "^8.16.1",
     "multer": "^2.0.2",
     "node-fetch": "^2.7.0",
@@ -35,7 +37,8 @@
     "passport-github2": "^0.1.12",
     "passport-google-oauth20": "^2.0.0",
     "pdfkit": "^0.17.1",
-    "ua-parser-js": "^1.0.41"
+    "ua-parser-js": "^1.0.41",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"

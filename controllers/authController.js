@@ -7,12 +7,14 @@ const {
   validateCompleteProfile,
   validateUserId 
 } = require("../models/User");
-const {generateUID, generateUsername} = require("../utils/generateUID");
+const {generateUID, buildBaseUsername} = require("../utils/generateUID");
 const {formatPhoneNumber} = require("../utils/phoneUtils");
 const { createLoginHistoryEntry } = require("../utils/loginHistoryHelper");
 const { createNotification } = require('../services/notification.service');
 const t = require("../utils/t");
 const messages = require("../constants/messages");
+
+
 
 /**
  * @desc    Register new user
@@ -60,12 +62,6 @@ module.exports.registerUserCtrl = asyncHandler(async (req, res) => {
     }
   }
 
-  // Generate unique UID (8 digits) - using your existing function
-  const uid = await generateUID();
-
-  // Generate username based on first and last name
-  const username = await generateUsername(firstName, lastName);
-
   // Hash password
   const salt = 10;
   const hashedPassword = await bcrypt.hash(password, salt);
@@ -73,31 +69,66 @@ module.exports.registerUserCtrl = asyncHandler(async (req, res) => {
   // Create login history entry
   const loginEntry = await createLoginHistoryEntry(req, 'local', true);
 
-  // Create new user
-  const newUser = new User({
-    username,
-    uid,
-    firstName,
-    lastName,
-    email: email.toLowerCase(),
-    phoneNumber,
-    dateOfBirth,
-    gender,
-    password: hashedPassword,
-    primaryProvider: "local",
-    providers: [{
-      provider: "local",
-      providerId: uid,
-      email: email.toLowerCase(),
-      createdAt: new Date()
-    }],
-    loginHistory: [loginEntry],
-    lastLoginIP: loginEntry.ipAddress,
-    lastLoginTime: loginEntry.loginTime
-  });
+  let newUser;
 
-  // Save user to database
-  await newUser.save();
+  const baseUsername = buildBaseUsername(firstName, lastName);
+  let usernameCounter = 0;
+
+  while (true) {
+    try {
+      const uid = generateUID(10);
+
+      const username = usernameCounter === 0
+        ? baseUsername
+        : `${baseUsername}.${usernameCounter}`;
+
+      newUser = new User({  
+        username,
+        uid,
+        firstName,
+        lastName,
+        email: email.toLowerCase(),
+        phoneNumber,
+        dateOfBirth,
+        gender,
+        password: hashedPassword,
+        primaryProvider: "local",
+        providers: [{
+          provider: "local",
+          providerId: uid,
+          email: email.toLowerCase(),
+          createdAt: new Date()
+        }],
+        loginHistory: [loginEntry],
+        lastLoginIP: loginEntry.ipAddress,
+        lastLoginTime: loginEntry.loginTime
+      });
+
+      await newUser.save();
+      break;
+
+    } catch (err) {
+
+      const isDuplicate =
+      err.code === 11000 ||
+      err.name === 'MongoServerError' ||
+      err.name === 'MongooseError';
+  
+      if (isDuplicate) {
+    
+        if (err.message.includes('uid')) {
+          continue;
+        }
+    
+        if (err.message.includes('username')) {
+          usernameCounter++;
+          continue;
+        }
+      }
+    
+      throw err;
+    }
+  }
 
   // Create welcome notification (only once)
   if (!newUser.hasWelcomeNotification) {
@@ -186,8 +217,11 @@ module.exports.completeProfileCtrl = asyncHandler(async (req, res) => {
     });
   }
 
+  console.log("USER:", user);
+  console.log("PRIMARY PROVIDER:", user?.primaryProvider);
+
   // Check if user is an OAuth user
-  if (!user.isOAuthUser) {
+  if (user.primaryProvider === 'local') {
     return res.status(400).json({ 
       success: false,
       message: t(messages.NOT_OAUTH_USER, req.lang) 

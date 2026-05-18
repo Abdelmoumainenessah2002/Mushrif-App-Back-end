@@ -1,71 +1,58 @@
-// Helper function to parse phone number into structured format
-function parsePhoneNumber(phoneNumber) {
-  if (!phoneNumber || typeof phoneNumber !== 'string') return null;
-  
-  // Remove all non-digit characters except + at the beginning
-  const cleaned = phoneNumber.replace(/[^\d+]/g, '');
-  
-  // If it starts with +, extract country code
-  if (cleaned.startsWith('+')) {
-    const withoutPlus = cleaned.substring(1);
-    
-    // Common country code patterns - you can extend this
-    const countryCodePatterns = [
-      { code: '1', length: 11, name: 'US/Canada' },
-      { code: '213', length: 12, name: 'Algeria' },
-      { code: '33', length: 11, name: 'France' },
-      { code: '44', length: 12, name: 'UK' },
-      { code: '49', length: 12, name: 'Germany' },
-      { code: '86', length: 13, name: 'China' },
-      { code: '91', length: 12, name: 'India' }
-    ];
-    
-    // Find matching country code
-    for (const pattern of countryCodePatterns) {
-      if (withoutPlus.startsWith(pattern.code) && withoutPlus.length >= pattern.length - 1) {
-        return {
-          countryCode: '+' + pattern.code,
-          localNumber: withoutPlus.substring(pattern.code.length),
-          fullNumber: cleaned
-        };
-      }
+// phone.utils.js
+const { parsePhoneNumberFromString } = require('libphonenumber-js');
+
+/**
+ * Parse & normalize phone number
+ * @param {string} 
+ * @param {string} 
+ */
+function parsePhoneNumber(input, country = 'DZ') {
+  if (!input || typeof input !== 'string') return null;
+
+  try {
+    const phone = parsePhoneNumberFromString(input, country);
+
+    if (!phone || !phone.isValid()) {
+      return null;
     }
-    
-    // Generic parsing for other countries (assume 2-3 digit country code)
-    let countryCodeLength = 2;
-    if (withoutPlus.length > 10) countryCodeLength = 3;
-    
-    const countryCode = '+' + withoutPlus.substring(0, countryCodeLength);
-    const localNumber = withoutPlus.substring(countryCodeLength);
-    
+
     return {
-      countryCode,
-      localNumber,
-      fullNumber: cleaned
+      country: phone.country,                 // DZ
+      countryCode: '+' + phone.countryCallingCode, // +213
+      nationalNumber: phone.nationalNumber,   // 666826326
+      number: phone.number,                   // +213666826326 (E.164)
+      international: phone.formatInternational(), // +213 666 82 63 26
+      national: phone.formatNational(),       // 0666 82 63 26
     };
-  } else {
-    // No country code provided, assume local number
-    return {
-      countryCode: null,
-      localNumber: cleaned,
-      fullNumber: cleaned
-    };
+
+  } catch (err) {
+    return null;
   }
 }
 
-// Helper function to format phone number object to string for validation
-function formatPhoneNumber(phoneObj) {
-  if (!phoneObj || typeof phoneObj !== 'object') return null;
-  
-  if (phoneObj.fullNumber) {
-    return phoneObj.fullNumber;
-  } else if (phoneObj.countryCode && phoneObj.localNumber) {
-    return phoneObj.countryCode + phoneObj.localNumber;
-  } else if (phoneObj.localNumber) {
-    return phoneObj.localNumber;
+/**
+ * Format any phone input to E.164 (for DB storage)
+ * @param {string|object} input
+ * @param {string} country
+ */
+function formatPhoneNumber(input, country = 'DZ') {
+  try {
+    // إذا جاء object من parsePhoneNumber
+    if (typeof input === 'object' && input.number) {
+      return input.number; // already E.164
+    }
+
+    const phone = parsePhoneNumberFromString(input, country);
+
+    if (!phone || !phone.isValid()) {
+      return null;
+    }
+
+    return phone.number; // +213XXXXXXXXX
+
+  } catch (err) {
+    return null;
   }
-  
-  return null;
 }
 
 module.exports = {

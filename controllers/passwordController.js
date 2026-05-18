@@ -58,7 +58,7 @@ module.exports.forgotPassword = asyncHandler(async (req, res) => {
     15
   );
 
-  const resetLink = `${process.env.CLIENT_URL}/reset-password/${token}`;
+  const resetLink = `${process.env.CLIENT_URL}/reset-password?token=${token}`;
 
   const html = resetPasswordEmail({
     resetLink,

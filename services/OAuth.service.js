@@ -1,5 +1,5 @@
 const { User } = require('../models/User');
-const { generateUID, generateUsername } = require('../utils/generateUID');
+const { generateUID, buildBaseUsername } = require('../utils/generateUID');
 const t = require('../utils/t');
 const messages = require('../constants/messages');
 const { getGitHubPrimaryEmail } = require('../utils/getGithubEmailsHelper');
@@ -128,39 +128,72 @@ async function updateUserLoginInfo(user, ipAddress) {
  * Create new OAuth user
  */
 async function createNewOAuthUser(profile, provider, tokens, email, ipAddress) {
-  const uid = await generateUID();
+
   const { firstName, lastName } = extractUserNames(profile);
+  const baseUsername = buildBaseUsername(firstName, lastName);
 
-  const username = await generateUsername(firstName, lastName);
+  let usernameCounter = 0;
+  let newUser;
 
-  const newUser = new User({
-    username,
-    uid,
-    firstName,
-    lastName,
-    email: email || `${profile.id}@${provider}.temp`,
-    primaryProvider: provider,
-    profilePhoto: {
-      url: getProfilePhoto(profile) || "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png",
-      publicId: null
-    },
-    providers: [{
-      provider,
-      providerId: profile.id,
-      email: email || `${profile.id}@${provider}.temp`,
-      displayName: profile.displayName || profile.username,
-      photoURL: getProfilePhoto(profile),
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
-      createdAt: new Date()
-    }],
-    loginHistory: [],
-    lastLoginIP: ipAddress,
-    lastLoginTime: new Date(),
-    isVerified: true,
-  });
+  while (true) {
+    try {
 
-  return await newUser.save();
+      const uid = generateUID(10);
+
+      const username = usernameCounter === 0
+        ? baseUsername
+        : `${baseUsername}.${usernameCounter}`;
+
+      newUser = new User({
+        username,
+        uid,
+        firstName,
+        lastName,
+        email: email || `${profile.id}@${provider}.temp`,
+        primaryProvider: provider,
+        profilePhoto: {
+          url: getProfilePhoto(profile) ||
+            "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png",
+          publicId: null
+        },
+        providers: [{
+          provider,
+          providerId: profile.id,
+          email: email || `${profile.id}@${provider}.temp`,
+          displayName: profile.displayName || profile.username,
+          photoURL: getProfilePhoto(profile),
+          accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken,
+          createdAt: new Date()
+        }],
+        loginHistory: [],
+        lastLoginIP: ipAddress,
+        lastLoginTime: new Date(),
+        isVerified: true,
+      });
+
+      await newUser.save();
+      break;
+
+    } catch (err) {
+
+      if (err.code === 11000) {
+
+        if (err.keyPattern?.uid) {
+          continue;
+        }
+
+        if (err.keyPattern?.username) {
+          usernameCounter++;
+          continue;
+        }
+      }
+
+      throw err;
+    }
+  }
+
+  return newUser;
 }
 
 /**

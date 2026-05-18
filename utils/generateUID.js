@@ -1,43 +1,28 @@
 const { User } = require('../models/User');
 
-async function generateUID() {
-  let uid;
-  let uidExists = true;
-  
-  while (uidExists) {
-    uid = Math.floor(10000000 + Math.random() * 90000000).toString();
-    
-    // Check if UID exists in database
-    const existingUser = await User.findOne({ uid: uid });
-    if (!existingUser) {
-      uidExists = false;
-    }
+const crypto = require("crypto");
+
+function generateUID(length = 10) {
+  const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  const charsetLength = charset.length;
+
+  let uid = "";
+  const randomBytes = crypto.randomBytes(length);
+
+  for (let i = 0; i < length; i++) {
+    uid += charset[randomBytes[i] % charsetLength];
   }
-  
+
   return uid;
 }
 
-async function generateUsername(firstName, lastName) {
-  // Convert to lowercase and remove spaces/special characters
+function buildBaseUsername(firstName, lastName) {
   const cleanFirstName = firstName.toLowerCase().trim().replace(/[^a-z0-9]/g, '');
   const cleanLastName = lastName.toLowerCase().trim().replace(/[^a-z0-9]/g, '');
-  
-  // Base username: firstname.lastname
-  const baseUsername = `${cleanFirstName}.${cleanLastName}`;
-  
-  let username = baseUsername;
-  let counter = 1;
-  
-  // Check if username exists in database
-  while (await User.findOne({ username: username })) {
-    username = `${baseUsername}.${counter}`;
-    counter++;
-  }
-  
-  return username;
+  return `${cleanFirstName}.${cleanLastName}`;
 }
 
 module.exports = {
   generateUID,
-  generateUsername
+  buildBaseUsername
 };
