@@ -2,6 +2,7 @@
   "VALIDATION_ERROR": "Invalid input data",
   "EMAIL_ALREADY_EXISTS": "User with this email already exists",
   "PHONE_ALREADY_EXISTS": "User with this phone number already exists",
+  "INVALID_PHONE_NUMBER": "Invalid phone number",
   "INVALID_CREDENTIALS": "Invalid email or password",
   "OAUTH_AUTH_FAILED": "OAuth authentication failed",
   "ACCOUNT_SUSPENDED": "Your account has been suspended",
@@ -42,6 +43,7 @@
   "USER_UNSUSPENDED": "User unsuspended successfully",
   "USER_ALREADY_UNSUSPENDED": "User is already unsuspended",
   "CANNOT_SUSPEND_THIS_USER": "You cannot suspend this user",
+  "CANNOT_SUSPEND_SELF": "You cannot suspend yourself",
   "CANNOT_UNSUSPEND_THIS_USER": "You cannot unsuspend this user",
   "OTP_SENT" : "Verification code sent successfully.",
   "INVALID_OTP" : "Invalid verification code."

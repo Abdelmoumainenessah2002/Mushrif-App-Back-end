@@ -2,6 +2,7 @@
   "VALIDATION_ERROR": "Données invalides",
   "EMAIL_ALREADY_EXISTS": "Un utilisateur avec cet email existe déjà",
   "PHONE_ALREADY_EXISTS": "Un utilisateur avec ce numéro de téléphone existe déjà",
+  "INVALID_PHONE_NUMBER": "Numéro de téléphone invalide",
   "INVALID_CREDENTIALS": "Email ou mot de passe invalide",
   "OAUTH_AUTH_FAILED": "L'authentification OAuth a échoué",
   "ACCOUNT_SUSPENDED": "Votre compte a été suspendu",
@@ -43,6 +44,7 @@
   "USER_ALREADY_UNSUSPENDED": "L'utilisateur est déjà réactivé",
   "CANNOT_SUSPEND_THIS_USER": "Vous ne pouvez pas suspendre cet utilisateur",
   "CANNOT_UNSUSPEND_THIS_USER": "Vous ne pouvez pas réactiver cet utilisateur",
+  "CANNOT_SUSPEND_SELF": "Vous ne pouvez pas suspendre votre propre compte",
   "OTP_SENT" : "Le code de vérification a été envoyé avec succès.",
   "INVALID_OTP" : "Le code de vérification est invalide."
 }

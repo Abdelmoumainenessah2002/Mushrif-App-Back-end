@@ -30,4 +30,20 @@ async function createOTP(userId, target, type, expiresInMinutes) {
   return otpCode;
 }
 
-module.exports = createOTP;
+
+// verify if the OTP code is correct
+async function verifyOTP(userId, type, target, code) {
+  const otpRecord = await OTP.findOne({ userId, type, target });
+
+  if (!otpRecord) {
+    return false;
+  }
+
+  const isMatch = await bcrypt.compare(code, otpRecord.codeHash);
+  return isMatch;
+}
+
+module.exports = {
+  createOTP,
+  verifyOTP
+};

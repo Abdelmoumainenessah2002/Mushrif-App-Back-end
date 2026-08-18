@@ -23,8 +23,4 @@ router.patch(
   updateUserProfilePhotoCtrl
 );
 
-// suspended and unsuspended routes for admin
-router.put('/suspend/:id', verifyTokenAndAdmin, suspendUserAccountCtrl);
-router.put('/unsuspend/:id', verifyTokenAndAdmin, unsuspendUserAccountCtrl);
-
 module.exports = router;

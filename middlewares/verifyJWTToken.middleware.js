@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
-const t = require('../utils/t');
+const t = require('../utils/t.utils');
 const messages = require('../constants/messages');
-const { hasMinRole } = require("../utils/roleHierarchy");
+const { hasMinRole } = require("../utils/roleHierarchy.utils");
 
 
 // This function is used to verify the token which is send by the client

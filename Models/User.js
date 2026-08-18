@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema({
 
   username: {
     type: String,
-    unique: [true, "Username already exists"],
+    unique: true,
     required: [true, "Username is required"],
     minlength: [3, "Username must be at least 3 characters long"],
     maxlength: [50, "Username must be at most 50 characters long"],
@@ -15,25 +15,25 @@ const userSchema = new mongoose.Schema({
   },
 
   uid: {
-   type: String,
-   unique: [true, "UID already exists"],
-   required: true,
-   trim: true,
-   match: [/^\d{8}$/, "UID must be exactly 8 digits"]
-
- },
+    type: String,
+    unique: [true, "UID already exists"],
+    required: [true, "UID is required"],
+    index: true,
+    minlength: 10,
+    maxlength: 10
+  },
 
   firstName: {
     type: String,
     required: [true, "First name is required"],
-    minlength: [3, "First name must be at least 3 characters long"],
+    minlength: [2, "First name must be at least 2 characters long"],
     maxlength: [50, "First name must be at most 50 characters long"],
   },
 
   lastName: {
     type: String,
     required: [true, "Last name is required"],
-    minlength: [3, "Last name must be at least 3 characters long"],
+    minlength: [2, "Last name must be at least 2 characters long"],
     maxlength: [50, "Last name must be at most 50 characters long"],
   },
 
@@ -61,24 +61,10 @@ const userSchema = new mongoose.Schema({
       localNumber: {
         type: String,
         trim: true,
-        validate: {
-          validator: function(value) {
-            if (!value) return true; // Allow null for OAuth users
-            return /^\d{6,15}$/.test(value);
-          },
-          message: "Local number must be 6-15 digits"
-        }
       },
       fullNumber: {
         type: String,
         trim: true,
-        validate: {
-          validator: function(value) {
-            if (!value) return true; // Allow null for OAuth users
-            return /^[+]?[1-9]\d{6,18}$/.test(value);
-          },
-          message: "Please enter a valid phone number"
-        }
       }
     },
   },
@@ -320,7 +306,7 @@ roleMeta: {
 // Generate JWT token
 userSchema.methods.generateAuthToken = function () {
    const payload = {
-     _id: this._id,
+     id: this._id,
      uid: this.uid,
      username: this.username,
      email: this.email,
@@ -330,9 +316,9 @@ userSchema.methods.generateAuthToken = function () {
    };
  
    return jwt.sign(payload, process.env.JWT_SECRET, {
-     expiresIn: "1m"
+     expiresIn: "30d"
    });
- };
+};
 
 // Check if user has specific OAuth provider
 userSchema.methods.hasProvider = function(providerName) {
@@ -362,19 +348,13 @@ userSchema.methods.getProvider = function(providerName) {
 // Validation functions
 function validateRegisterUser(obj) {
   const schema = Joi.object({
-    firstName: Joi.string().min(3).max(50).trim().required(),
-    lastName: Joi.string().min(3).max(50).trim().required(),
+    firstName: Joi.string().min(2).max(50).trim().required(),
+    lastName: Joi.string().min(2).max(50).trim().required(),
     email: Joi.string().email().min(5).max(255).trim().required(),
     phoneNumber: Joi.object({
-      countryCode: Joi.string().pattern(/^[+]\d{1,4}$/).required().messages({
-        'string.pattern.base': 'Country code must be in format +XXX'
-      }),
-      localNumber: Joi.string().pattern(/^\d{6,15}$/).required().messages({
-        'string.pattern.base': 'Local number must be 6-15 digits'
-      }),
-      fullNumber: Joi.string().pattern(/^[+]?[1-9]\d{6,18}$/).required().messages({
-        'string.pattern.base': 'Please enter a valid phone number'
-      })
+      countryCode: Joi.string().required(),
+      localNumber: Joi.string().required(),
+      fullNumber: Joi.string().trim().required()
     }).required(),
     dateOfBirth: Joi.date().max('now').required().messages({
       'date.max': 'Date of birth cannot be in the future'
@@ -396,20 +376,14 @@ function validateLoginUser(obj) {
 // For OAuth users - no password required, phone, DOB, and gender optional (can be null)
 function validateOAuthUser(obj) {
   const schema = Joi.object({
-    firstName: Joi.string().min(3).max(50).trim().required(),
-    lastName: Joi.string().min(3).max(50).trim().required(),
+    firstName: Joi.string().min(2).max(50).trim().required(),
+    lastName: Joi.string().min(2).max(50).trim().required(),
     email: Joi.string().email().min(5).max(255).trim().required(),
     phoneNumber: Joi.object({
-      countryCode: Joi.string().pattern(/^[+]\d{1,4}$/).messages({
-        'string.pattern.base': 'Country code must be in format +XXX'
-      }),
-      localNumber: Joi.string().pattern(/^\d{6,15}$/).messages({
-        'string.pattern.base': 'Local number must be 6-15 digits'
-      }),
-      fullNumber: Joi.string().pattern(/^[+]?[1-9]\d{6,18}$/).messages({
-        'string.pattern.base': 'Please enter a valid phone number'
-      })
-    }).allow(null).optional(),
+      countryCode: Joi.string().required(),
+      localNumber: Joi.string().required(),
+      fullNumber: Joi.string().trim().required()
+    }).required(),
     dateOfBirth: Joi.date().max('now').allow(null).optional().messages({
       'date.max': 'Date of birth cannot be in the future'
     }),
@@ -427,19 +401,8 @@ function validateOAuthUser(obj) {
 function validateUserProfileUpdate(obj) {
   const schema = Joi.object({
     username: Joi.string().min(3).max(50).trim(),
-    firstName: Joi.string().min(3).max(50).trim(),
-    lastName: Joi.string().min(3).max(50).trim(),
-    phoneNumber: Joi.object({
-      countryCode: Joi.string().required().pattern(/^[+]\d{1,4}$/).messages({
-        'string.pattern.base': 'Country code must be in format +XXX'
-      }),
-      localNumber: Joi.string().required().pattern(/^\d{6,15}$/).messages({
-        'string.pattern.base': 'Local number must be 6-15 digits'
-      }),
-      fullNumber: Joi.string().required().pattern(/^[+]?[1-9]\d{6,18}$/).messages({
-        'string.pattern.base': 'Please enter a valid phone number'
-      })
-    }).allow(null),
+    firstName: Joi.string().min(2).max(50).trim(),
+    lastName: Joi.string().min(2).max(50).trim(),
     bio: Joi.string().min(1).max(255).trim(),
     // Optional fields for profile updates
     socialMedia: Joi.array().items(

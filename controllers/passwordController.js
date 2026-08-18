@@ -6,7 +6,7 @@ const VerificationToken = require('../models/VerificationToken');
 const createVerificationToken = require('../services/verificationToken.service');
 const sendEmail = require('../services/email.service');
 const resetPasswordEmail = require('../emails/resetPasswordEmail.template');
-const t = require('../utils/t');
+const t = require('../utils/t.utils');
 const messages = require('../constants/messages');
 /**
  * @desc Forgot password

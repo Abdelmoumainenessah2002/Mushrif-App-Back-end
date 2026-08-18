@@ -1,8 +1,8 @@
 const { User } = require('../models/User');
-const { generateUID, buildBaseUsername } = require('../utils/generateUID');
-const t = require('../utils/t');
+const { generateUID, buildBaseUsername } = require('../utils/generateUID.utils');
+const t = require('../utils/t.utils');
 const messages = require('../constants/messages');
-const { getGitHubPrimaryEmail } = require('../utils/getGithubEmailsHelper');
+const { getGitHubPrimaryEmail } = require('../utils/getGithubEmailsHelper.utils');
 
 /**
  * OAuth Service - Handles all OAuth-related business logic
@@ -77,6 +77,7 @@ async function handleOAuthUser(profile, provider, tokens, ipAddress) {
     return { user, isNewUser: true, isLinked: false };
 
   } catch (error) {
+    console.error('Error in handleOAuthUser:', error);
     return {
       success: false,
       error: {

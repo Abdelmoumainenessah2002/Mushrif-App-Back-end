@@ -1,5 +1,5 @@
 const Notification = require('../models/Notification');
-const t = require('../utils/t');
+const t = require('../utils/t.utils');
 
 /**
  * Create a notification safely

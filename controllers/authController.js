@@ -7,12 +7,13 @@ const {
   validateCompleteProfile,
   validateUserId 
 } = require("../models/User");
-const {generateUID, buildBaseUsername} = require("../utils/generateUID");
-const {formatPhoneNumber} = require("../utils/phoneUtils");
-const { createLoginHistoryEntry } = require("../utils/loginHistoryHelper");
+const {generateUID, buildBaseUsername} = require("../utils/generateUID.utils");
+const {parseGlobalPhoneNumber} = require("../utils/phoneUtils.utils");
+const { createLoginHistoryEntry } = require("../utils/loginHistoryHelper.utils");
 const { createNotification } = require('../services/notification.service');
-const t = require("../utils/t");
+const t = require("../utils/t.utils");
 const messages = require("../constants/messages");
+const { validateAndNormalizePhoneNumber } = require("../utils/phoneUtils.utils");
 
 
 
@@ -23,9 +24,8 @@ const messages = require("../constants/messages");
  * @access  Public
  */
 
-
 module.exports.registerUserCtrl = asyncHandler(async (req, res) => {
-  // Validate request body
+  // 1. Validate request body
   const { error } = validateRegisterUser(req.body);
   if (error) {
     return res.status(400).json({ 
@@ -36,7 +36,7 @@ module.exports.registerUserCtrl = asyncHandler(async (req, res) => {
 
   const { firstName, lastName, email, phoneNumber, dateOfBirth, gender, password } = req.body;
 
-  // Check if user already exists by email
+  // 2. Check if email exists
   const existingUserByEmail = await User.findOne({ email: email.toLowerCase() });
   if (existingUserByEmail) {
     return res.status(400).json({ 
@@ -45,28 +45,33 @@ module.exports.registerUserCtrl = asyncHandler(async (req, res) => {
     });
   }
 
-  // Check if user already exists by phone number
-  const phoneString = formatPhoneNumber(phoneNumber);
-  if (phoneString) {
-    const existingUserByPhone = await User.findOne({ 
-      $or: [
-        { 'phoneNumber.fullNumber': phoneString },
-        { 'phoneNumber.fullNumber': phoneNumber.fullNumber }
-      ]
+  // 3. 🔥 Validate + Normalize phone (UTIL)
+  const { value: finalPhone, error: phoneError } = validateAndNormalizePhoneNumber(phoneNumber);
+
+  if (phoneError) {
+    return res.status(400).json({
+      success: false,
+      message: t(messages[phoneError], req.lang)
     });
-    if (existingUserByPhone) {
-      return res.status(400).json({ 
-        success: false,
-        message: t(messages.PHONE_ALREADY_EXISTS, req.lang) 
-      });
-    }
   }
 
-  // Hash password
+  // 4. Check if phone exists
+  const existingUserByPhone = await User.findOne({ 
+    "phoneNumber.fullNumber": finalPhone.fullNumber
+  });
+
+  if (existingUserByPhone) {
+    return res.status(400).json({ 
+      success: false,
+      message: t(messages.PHONE_ALREADY_EXISTS, req.lang) 
+    });
+  }
+
+  // 5. Hash password
   const salt = 10;
   const hashedPassword = await bcrypt.hash(password, salt);
 
-  // Create login history entry
+  // 6. Create login history
   const loginEntry = await createLoginHistoryEntry(req, 'local', true);
 
   let newUser;
@@ -74,6 +79,7 @@ module.exports.registerUserCtrl = asyncHandler(async (req, res) => {
   const baseUsername = buildBaseUsername(firstName, lastName);
   let usernameCounter = 0;
 
+  // 7. Create user (handle duplicates)
   while (true) {
     try {
       const uid = generateUID(10);
@@ -88,7 +94,7 @@ module.exports.registerUserCtrl = asyncHandler(async (req, res) => {
         firstName,
         lastName,
         email: email.toLowerCase(),
-        phoneNumber,
+        phoneNumber: finalPhone, // ✅ ALWAYS normalized
         dateOfBirth,
         gender,
         password: hashedPassword,
@@ -110,27 +116,23 @@ module.exports.registerUserCtrl = asyncHandler(async (req, res) => {
     } catch (err) {
 
       const isDuplicate =
-      err.code === 11000 ||
-      err.name === 'MongoServerError' ||
-      err.name === 'MongooseError';
+        err.code === 11000 ||
+        err.name === 'MongoServerError' ||
+        err.name === 'MongooseError'; 
   
       if (isDuplicate) {
-    
-        if (err.message.includes('uid')) {
-          continue;
-        }
-    
+        if (err.message.includes('uid')) continue;
         if (err.message.includes('username')) {
           usernameCounter++;
           continue;
         }
       }
-    
+
       throw err;
     }
   }
 
-  // Create welcome notification (only once)
+  // 8. Welcome notification
   if (!newUser.hasWelcomeNotification) {
     await createNotification({
       userId: newUser._id,
@@ -145,10 +147,10 @@ module.exports.registerUserCtrl = asyncHandler(async (req, res) => {
     await newUser.save();
   }
 
-  // Generate JWT token
+  // 9. Generate token
   const token = newUser.generateAuthToken();
 
-  // Remove sensitive data from response
+  // 10. Safe response
   const userResponse = {
     _id: newUser._id,
     username: newUser.username,
@@ -166,7 +168,7 @@ module.exports.registerUserCtrl = asyncHandler(async (req, res) => {
     updatedAt: newUser.updatedAt
   };
 
-  res.status(201).json({
+  return res.status(201).json({
     success: true,
     message: t(messages.USER_REGISTERED, req.lang),
     data: {
@@ -185,7 +187,6 @@ module.exports.registerUserCtrl = asyncHandler(async (req, res) => {
  */
 
 module.exports.completeProfileCtrl = asyncHandler(async (req, res) => {
-
 
   // Validate user ID parameter
   const { error: idError } = validateUserId(req.params);
@@ -217,9 +218,6 @@ module.exports.completeProfileCtrl = asyncHandler(async (req, res) => {
     });
   }
 
-  console.log("USER:", user);
-  console.log("PRIMARY PROVIDER:", user?.primaryProvider);
-
   // Check if user is an OAuth user
   if (user.primaryProvider === 'local') {
     return res.status(400).json({ 
@@ -236,27 +234,32 @@ module.exports.completeProfileCtrl = asyncHandler(async (req, res) => {
     });
   }
 
-  // Check if phone number already exists for another user
-  const phoneString = formatPhoneNumber(phoneNumber);
-  if (phoneString) {
-    const existingUserByPhone = await User.findOne({ 
-      _id: { $ne: userId }, // Exclude current user
-      $or: [
-        { 'phoneNumber.fullNumber': phoneString },
-        { 'phoneNumber.fullNumber': phoneNumber.fullNumber }
-      ]
+  // 🔥 نفس logic تاع register (validate + normalize)
+  const { value: finalPhone, error: phoneError } = validateAndNormalizePhoneNumber(phoneNumber);
+
+  if (phoneError) {
+    return res.status(400).json({
+      success: false,
+      message: t(messages[phoneError], req.lang)
     });
-    if (existingUserByPhone) {
-      return res.status(400).json({ 
-        success: false,
-        message: t(messages.PHONE_ALREADY_EXISTS, req.lang) 
-      });
-    }
+  }
+
+  // Check if phone number already exists for another user
+  const existingUserByPhone = await User.findOne({ 
+    "phoneNumber.fullNumber": finalPhone.fullNumber 
+  });
+
+  if (existingUserByPhone && existingUserByPhone._id.toString() !== userId) {
+    return res.status(400).json({ 
+      success: false,
+      message: t(messages.PHONE_ALREADY_EXISTS, req.lang) 
+    });
   }
 
   // Validate age (must be at least 13 years old)
   const today = new Date();
   const minAge = new Date(today.getFullYear() - 13, today.getMonth(), today.getDate());
+
   if (new Date(dateOfBirth) > minAge) {
     return res.status(400).json({ 
       success: false,
@@ -264,15 +267,15 @@ module.exports.completeProfileCtrl = asyncHandler(async (req, res) => {
     });
   }
 
-  // Update user profile
-  user.phoneNumber = phoneNumber;
+  // ✅ استعمل النسخة النظيفة فقط
+  user.phoneNumber = finalPhone;
   user.dateOfBirth = new Date(dateOfBirth);
   user.gender = gender;
 
   // Save updated user
   await user.save();
 
-  // Remove sensitive data from response
+  // Response
   const userResponse = {
     _id: user._id,
     username: user.username,
@@ -285,7 +288,7 @@ module.exports.completeProfileCtrl = asyncHandler(async (req, res) => {
     gender: user.gender,
   };
 
-  res.status(200).json({
+  return res.status(200).json({
     success: true,
     message: t(messages.PROFILE_COMPLETED, req.lang),
     data: {
@@ -293,6 +296,7 @@ module.exports.completeProfileCtrl = asyncHandler(async (req, res) => {
     }
   });
 });
+
 
 
 /**

@@ -1,5 +1,5 @@
 const rateLimit = require('express-rate-limit');
-const t = require('../utils/t');
+const t = require('../utils/t.utils');
 const messages = require('../constants/messages');
 
 const forgotPasswordLimiter = rateLimit({

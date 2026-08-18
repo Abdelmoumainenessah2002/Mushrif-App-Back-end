@@ -7,6 +7,7 @@ const {
     validateEmailVerificationTokenCtrl,
     verifyEmailAndUpdateUserCtrl,
     changeEmailRequestCtrl,
+    validateChangeEmailOtpCtrl,
   } = require('../controllers/emailController');
 
   const { verifyTokenAndOnlyUser } = require('../middlewares/verifyJWTToken.middleware');
@@ -25,7 +26,9 @@ router.post('/verify-email', verifyEmailAndUpdateUserCtrl);
 
 
 // change email request
-router.post('/:id/change-email-request', changeEmailRequestCtrl);
+// 
+router.post('/:id/change-email-request', verifyTokenAndOnlyUser, changeEmailRequestCtrl);
+router.get('/:id/change-email-verify-otp', verifyTokenAndOnlyUser, validateChangeEmailOtpCtrl);
 
 
 module.exports = router;

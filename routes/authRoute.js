@@ -5,9 +5,9 @@ const {
   completeProfileCtrl, 
   loginUserCtrl
 } = require('../controllers/authController');
-const { createLoginHistoryEntry } = require('../utils/loginHistoryHelper');
+const { createLoginHistoryEntry } = require('../utils/loginHistoryHelper.utils');
 const { createNotification } = require('../services/notification.service');
-const t = require('../utils/t');
+const t = require('../utils/t.utils');
 const messages = require('../constants/messages');
 const { verifyTokenAndOnlyUser } = require('../middlewares/verifyJWTToken.middleware');
 

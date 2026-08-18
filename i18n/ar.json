@@ -2,6 +2,7 @@
   "VALIDATION_ERROR": "بيانات غير صالحة",
   "EMAIL_ALREADY_EXISTS": "مستخدم بهذا البريد الإلكتروني موجود بالفعل",
   "PHONE_ALREADY_EXISTS": "مستخدم بهذا رقم الهاتف موجود بالفعل",
+  "INVALID_PHONE_NUMBER": "رقم الهاتف غير صالح",
   "INVALID_CREDENTIALS": "بريد إلكتروني أو كلمة مرور غير صحيحة",
   "OAUTH_AUTH_FAILED": "فشل المصادقة عبر OAuth",
   "ACCOUNT_SUSPENDED": "تم تعليق حسابك",
@@ -43,6 +44,7 @@
   "USER_ALREADY_UNSUSPENDED": "المستخدم نشط بالفعل",
   "CANNOT_SUSPEND_THIS_USER": "لا يمكنك تعليق هذا المستخدم",
   "CANNOT_UNSUSPEND_THIS_USER": "لا يمكنك تنشيط هذا المستخدم",
+  "CANNOT_SUSPEND_SELF": "لا يمكنك تعليق نفسك",
   "OTP_SENT" : "تم إرسال رمز التحقق بنجاح.",
   "INVALID_OTP" : "رمز التحقق غير صالح."
 

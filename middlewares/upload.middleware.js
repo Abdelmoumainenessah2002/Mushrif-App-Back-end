@@ -1,6 +1,6 @@
 const multer = require('multer');
 const messages = require('../constants/messages');
-const t = require('../utils/t');
+const t = require('../utils/t.utils');
 
 const upload = multer({
   storage: multer.memoryStorage(),

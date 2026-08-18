@@ -1,5 +1,5 @@
 const { User, validateUserId} = require("../models/User");
-const t = require("../utils/t");
+const t = require("../utils/t.utils");
 const messages = require("../constants/messages");
 const createVerificationToken = require('../services/verificationToken.service');
 const asyncHandler = require("express-async-handler");
@@ -8,6 +8,8 @@ const verifyEmailTemplate = require("../emails/verifyEmail.template");
 const VerificationToken = require('../models/VerificationToken');
 const createOTP = require('../services/createOTP.service');
 const changeEmailOtpEmail = require("../emails/ChangeEmail.template");
+const OTP = require('../models/OTP');
+const bcrypt = require("bcryptjs");
 
 
 /**
@@ -244,5 +246,64 @@ module.exports.changeEmailRequestCtrl = asyncHandler(async (req, res) => {
     success: true,
     message: t(messages.OTP_SENT, req.lang)
   });
+
+});
+
+
+
+  /**
+   * @desc Validate email verification otp
+   * @route /api/users/validate-email-otp
+   * @method POST
+   * @access Private (Only the user themselves)
+  */
+
+
+
+module.exports.validateChangeEmailOtpCtrl = asyncHandler(async (req, res) => {
+  const { userId, otp } = req.body;
+
+  const isValidOtpFormat = /^\d{6}$/.test(otp);
+  if (!isValidOtpFormat) {
+    return res.status(400).json({
+      success: false,
+      message: t(messages.INVALID_OTP_FORMAT, req.lang)
+    });
+  }
+
+  // validate user ID
+  const { error } = validateUserId({ id: userId });
+  if (error) {
+    return res.status(400).json({
+      success: false,
+      message: t(messages.INVALID_USER_ID, req.lang)
+    });
+  }
+
+  const otpRecord = await OTP.findOne({ userId, type:"CHANGE_EMAIL", target:"email" });
+  
+  if (!otpRecord) {
+    return res.status(400).json({
+      success: false,
+      message: t(messages.INVALID_OR_EXPIRED_OTP, req.lang)
+    });
+  }
+  
+  const isMatch = await bcrypt.compare(otp, otpRecord.codeHash);
+
+
+  if (!isMatch) {
+    return res.status(400).json({
+      success: false,
+      message: t(messages.INVALID_OR_EXPIRED_OTP, req.lang)
+    });
+  }
+
+  // return success response
+  return res.status(200).json({
+    success: true,
+    message: t(messages.OTP_VALID, req.lang)
+  });
+
 
 });
