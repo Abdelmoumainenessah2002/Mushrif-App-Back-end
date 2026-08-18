@@ -28,7 +28,8 @@ passport.use(new GoogleStrategy({
       profile,
       'google',
       { accessToken, refreshToken },
-      ipAddress
+      ipAddress,
+      req.lang || 'en'
     );
 
     if (result.error) {
@@ -70,7 +71,8 @@ passport.use(new FacebookStrategy({
       profile,
       'facebook',
       { accessToken, refreshToken },
-      ipAddress
+      ipAddress,
+      req.lang || 'en'
     );
 
     if (result.error) {
@@ -110,7 +112,8 @@ passport.use(new GitHubStrategy({
       profile,
       'github',
       { accessToken, refreshToken },
-      ipAddress
+      ipAddress,
+      req.lang || 'en'
     );
 
     if (result.error) {

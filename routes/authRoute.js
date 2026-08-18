@@ -10,6 +10,9 @@ const { createNotification } = require('../services/notification.service');
 const t = require('../utils/t.utils');
 const messages = require('../constants/messages');
 const { verifyTokenAndOnlyUser } = require('../middlewares/verifyJWTToken.middleware');
+const sendEmail = require('../services/email.service');
+const loginNotificationTemplate = require('../emails/loginNotification.template');
+const { shouldSendLoginNotification } = require('../utils/loginNotificationHelper.utils');
 
 
 
@@ -68,6 +71,34 @@ router.get('/google/callback', (req, res, next) => {
 
       // Save user with login history
       await user.save();
+
+      // Send login notification email (with duplicate prevention)
+      // Only for existing users, not first-time registration
+      if (user.loginHistory && user.loginHistory.length > 1) {
+        if (shouldSendLoginNotification(user._id.toString(), loginEntry.ipAddress, req.headers['user-agent'])) {
+          try {
+            const html = loginNotificationTemplate({
+              firstName: user.firstName,
+              loginTime: loginEntry.loginTime,
+              ipAddress: loginEntry.ipAddress,
+              location: loginEntry.location,
+              browser: loginEntry.browser,
+              device: loginEntry.device,
+              os: loginEntry.os,
+              logoUrl: `${process.env.API_URL}/public/images/logo.png`,
+              lang: req.lang
+            });
+
+            await sendEmail({
+              to: user.email,
+              subject: t(messages.LOGIN_NOTIFICATION_SUBJECT || 'New Login to Your Account', req.lang),
+              html
+            });
+          } catch (emailError) {
+            console.error('Failed to send login notification email (Google OAuth):', emailError);
+          }
+        }
+      }
 
       // Create welcome notification (only once)
       if (!user.hasWelcomeNotification) {
@@ -337,6 +368,34 @@ router.get('/facebook/callback',
 
         // Save user with login history
         await user.save();
+
+        // Send login notification email (with duplicate prevention)
+        // Only for existing users, not first-time registration
+        if (user.loginHistory && user.loginHistory.length > 1) {
+          if (shouldSendLoginNotification(user._id.toString(), loginEntry.ipAddress, req.headers['user-agent'])) {
+            try {
+              const html = loginNotificationTemplate({
+                firstName: user.firstName,
+                loginTime: loginEntry.loginTime,
+                ipAddress: loginEntry.ipAddress,
+                location: loginEntry.location,
+                browser: loginEntry.browser,
+                device: loginEntry.device,
+                os: loginEntry.os,
+                logoUrl: `${process.env.API_URL}/public/images/logo.png`,
+                lang: req.lang
+              });
+
+              await sendEmail({
+                to: user.email,
+                subject: t(messages.LOGIN_NOTIFICATION_SUBJECT || 'New Login to Your Account', req.lang),
+                html
+              });
+            } catch (emailError) {
+              console.error('Failed to send login notification email (Facebook OAuth):', emailError);
+            }
+          }
+        }
 
         // Create welcome notification (only once)
         if (!user.hasWelcomeNotification) {
@@ -611,6 +670,34 @@ router.get('/github/callback',
 
         // Save user with login history
         await user.save();
+
+        // Send login notification email (with duplicate prevention)
+        // Only for existing users, not first-time registration
+        if (user.loginHistory && user.loginHistory.length > 1) {
+          if (shouldSendLoginNotification(user._id.toString(), loginEntry.ipAddress, req.headers['user-agent'])) {
+            try {
+              const html = loginNotificationTemplate({
+                firstName: user.firstName,
+                loginTime: loginEntry.loginTime,
+                ipAddress: loginEntry.ipAddress,
+                location: loginEntry.location,
+                browser: loginEntry.browser,
+                device: loginEntry.device,
+                os: loginEntry.os,
+                logoUrl: `${process.env.API_URL}/public/images/logo.png`,
+                lang: req.lang
+              });
+
+              await sendEmail({
+                to: user.email,
+                subject: t(messages.LOGIN_NOTIFICATION_SUBJECT || 'New Login to Your Account', req.lang),
+                html
+              });
+            } catch (emailError) {
+              console.error('Failed to send login notification email (GitHub OAuth):', emailError);
+            }
+          }
+        }
 
         // Create welcome notification (only once)
         if (!user.hasWelcomeNotification) {

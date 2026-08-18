@@ -3,6 +3,8 @@ const { generateUID, buildBaseUsername } = require('../utils/generateUID.utils')
 const t = require('../utils/t.utils');
 const messages = require('../constants/messages');
 const { getGitHubPrimaryEmail } = require('../utils/getGithubEmailsHelper.utils');
+const sendEmail = require('./email.service');
+const welcomeEmailTemplate = require('../emails/welcomeEmail.template');
 
 /**
  * OAuth Service - Handles all OAuth-related business logic
@@ -15,9 +17,10 @@ const { getGitHubPrimaryEmail } = require('../utils/getGithubEmailsHelper.utils'
  * @param {string} provider - OAuth provider (google, facebook, github)
  * @param {Object} tokens - { accessToken, refreshToken }
  * @param {string} ipAddress - User's IP address
+ * @param {string} lang - User's preferred language
  * @returns {Object} - { user, isNewUser }
  */
-async function handleOAuthUser(profile, provider, tokens, ipAddress) {
+async function handleOAuthUser(profile, provider, tokens, ipAddress, lang = 'en') {
   try {
 
     // Step 1: Check if user exists with this provider ID
@@ -39,7 +42,6 @@ async function handleOAuthUser(profile, provider, tokens, ipAddress) {
       return { user, isNewUser: false };
     }
 
-    // Step 2: Check if user exists with this email
     // Step 2: Check if user exists with this email
     const email = await extractEmail(profile, provider, tokens);
     if (email && !email.endsWith('.temp')) {
@@ -73,7 +75,7 @@ async function handleOAuthUser(profile, provider, tokens, ipAddress) {
     }
 
     // Step 3: Create new user (no existing user found)
-    user = await createNewOAuthUser(profile, provider, tokens, email, ipAddress);
+    user = await createNewOAuthUser(profile, provider, tokens, email, ipAddress, lang);
     return { user, isNewUser: true, isLinked: false };
 
   } catch (error) {
@@ -128,7 +130,7 @@ async function updateUserLoginInfo(user, ipAddress) {
 /**
  * Create new OAuth user
  */
-async function createNewOAuthUser(profile, provider, tokens, email, ipAddress) {
+async function createNewOAuthUser(profile, provider, tokens, email, ipAddress, lang = 'en') {
 
   const { firstName, lastName } = extractUserNames(profile);
   const baseUsername = buildBaseUsername(firstName, lastName);
@@ -171,9 +173,31 @@ async function createNewOAuthUser(profile, provider, tokens, email, ipAddress) {
         lastLoginIP: ipAddress,
         lastLoginTime: new Date(),
         isVerified: true,
+        hasWelcomeNotification: true
       });
 
       await newUser.save();
+
+      // Send welcome email for new OAuth user
+      if (email && !email.endsWith('.temp')) {
+        try {
+          console.log('Sending OAuth welcome email with language:', lang);
+          const html = welcomeEmailTemplate({
+            firstName: newUser.firstName,
+            logoUrl: `${process.env.API_URL}/public/images/logo.png`,
+            lang: lang
+          });
+
+          await sendEmail({
+            to: newUser.email,
+            subject: t(messages.WELCOME_TITLE, lang),
+            html
+          });
+        } catch (emailError) {
+          console.error('Failed to send welcome email for OAuth user:', emailError);
+        }
+      }
+
       break;
 
     } catch (err) {

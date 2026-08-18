@@ -14,6 +14,10 @@ const { createNotification } = require('../services/notification.service');
 const t = require("../utils/t.utils");
 const messages = require("../constants/messages");
 const { validateAndNormalizePhoneNumber } = require("../utils/phoneUtils.utils");
+const sendEmail = require("../services/email.service");
+const welcomeEmailTemplate = require("../emails/welcomeEmail.template");
+const loginNotificationTemplate = require("../emails/loginNotification.template");
+const { shouldSendLoginNotification } = require("../utils/loginNotificationHelper.utils");
 
 
 
@@ -45,7 +49,7 @@ module.exports.registerUserCtrl = asyncHandler(async (req, res) => {
     });
   }
 
-  // 3. 🔥 Validate + Normalize phone (UTIL)
+  // 3. Validate + Normalize phone (UTIL)
   const { value: finalPhone, error: phoneError } = validateAndNormalizePhoneNumber(phoneNumber);
 
   if (phoneError) {
@@ -132,7 +136,7 @@ module.exports.registerUserCtrl = asyncHandler(async (req, res) => {
     }
   }
 
-  // 8. Welcome notification
+  // 8. Welcome notification and email
   if (!newUser.hasWelcomeNotification) {
     await createNotification({
       userId: newUser._id,
@@ -145,6 +149,24 @@ module.exports.registerUserCtrl = asyncHandler(async (req, res) => {
 
     newUser.hasWelcomeNotification = true;
     await newUser.save();
+
+    // Send welcome email
+    try {
+      console.log('Sending welcome email with language:', req.lang);
+      const html = welcomeEmailTemplate({
+        firstName: newUser.firstName,
+        logoUrl: `${process.env.API_URL}/public/images/logo.png`,
+        lang: req.lang
+      });
+
+      await sendEmail({
+        to: newUser.email,
+        subject: t(messages.WELCOME_TITLE, req.lang),
+        html
+      });
+    } catch (emailError) {
+      console.error('Failed to send welcome email:', emailError);
+    }
   }
 
   // 9. Generate token
@@ -356,6 +378,31 @@ module.exports.loginUserCtrl = asyncHandler(async (req, res) => {
   
   // Save user with login history
   await user.save();
+
+  // Send login notification email (with duplicate prevention)
+  if (shouldSendLoginNotification(user._id.toString(), loginEntry.ipAddress, req.headers['user-agent'])) {
+    try {
+      const html = loginNotificationTemplate({
+        firstName: user.firstName,
+        loginTime: loginEntry.loginTime,
+        ipAddress: loginEntry.ipAddress,
+        location: loginEntry.location,
+        browser: loginEntry.browser,
+        device: loginEntry.device,
+        os: loginEntry.os,
+        logoUrl: `${process.env.API_URL}/public/images/logo.png`,
+        lang: req.lang
+      });
+
+      await sendEmail({
+        to: user.email,
+        subject: t(messages.LOGIN_NOTIFICATION_SUBJECT || 'New Login to Your Account', req.lang),
+        html
+      });
+    } catch (emailError) {
+      console.error('Failed to send login notification email:', emailError);
+    }
+  }
 
   // Generate JWT token
   const token = user.generateAuthToken();
