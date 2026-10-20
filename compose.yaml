@@ -1,0 +1,15 @@
+services:
+  backend:
+    image: mushrif-backend:1.0.0
+    container_name: mushrif-backend
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    networks:
+      - mushrif-network
+    restart: unless-stopped
+
+networks:
+  mushrif-network:
+    external: true

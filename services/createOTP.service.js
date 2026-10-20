@@ -1,6 +1,5 @@
-const bcrypt = require('bcryptjs');
-const OTP = require('../models/OTP');
-
+const bcrypt = require("bcryptjs");
+const OTP = require("../models/auth/OTP.model");
 
 async function createOTP(userId, target, type, expiresInMinutes) {
   // 1. dekete the old OTPs of the user
@@ -9,9 +8,7 @@ async function createOTP(userId, target, type, expiresInMinutes) {
   // 2. Generate a random number of 6 numbers
   const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-  console.log(otpCode);
-
-  // 3. Hash the code before save it 
+  // 3. Hash the code before save it
   const salt = await bcrypt.genSalt(10);
   const codeHash = await bcrypt.hash(otpCode, salt);
 
@@ -21,15 +18,14 @@ async function createOTP(userId, target, type, expiresInMinutes) {
   await OTP.create({
     userId,
     target, // 'email' or 'phone'
-    type,   // 'CHANGE_EMAIL' or 'LOGIN'
+    type, // 'CHANGE_EMAIL' or 'LOGIN'
     codeHash,
-    expiresAt
+    expiresAt,
   });
 
   // save the hashed code in DB and return the Plain code to the user
   return otpCode;
 }
-
 
 // verify if the OTP code is correct
 async function verifyOTP(userId, type, target, code) {
@@ -45,5 +41,5 @@ async function verifyOTP(userId, type, target, code) {
 
 module.exports = {
   createOTP,
-  verifyOTP
+  verifyOTP,
 };

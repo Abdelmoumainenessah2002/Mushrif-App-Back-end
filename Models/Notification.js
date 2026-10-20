@@ -1,77 +1,84 @@
 const mongoose = require('mongoose');
 
-const notificationSchema = new mongoose.Schema({
-  // User reference
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-    index: true
+const notificationSchema = new mongoose.Schema(
+  {
+    // User reference
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true,
+    },
+
+    // Notification type
+    type: {
+      type: String,
+      enum: ["success", "error", "warning", "info"],
+      required: true,
+      default: "info",
+    },
+
+    // Notification content
+    title: {
+      type: String,
+      required: true,
+      maxlength: 200,
+    },
+
+    message: {
+      type: String,
+      required: true,
+      maxlength: 500,
+    },
+
+    vars: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
+    },
+
+    // Read status
+    isRead: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+
+    readAt: {
+      type: Date,
+      default: null,
+    },
+
+    // Action URL (optional - for clickable notifications)
+    actionUrl: {
+      type: String,
+      default: null,
+    },
+
+    // Icon or image for the notification
+    icon: {
+      type: String,
+      default: null,
+    },
+
+    // Related entity (if notification is about a specific item)
+
+    // Priority level
+    priority: {
+      type: String,
+      enum: ["low", "medium", "high", "urgent"],
+      default: "medium",
+    },
+
+    // Expiration (optional - for time-sensitive notifications)
+    expiresAt: {
+      type: Date,
+      default: null,
+    },
   },
-
-  // Notification type
-  type: {
-    type: String,
-    enum: ['success', 'error', 'warning', 'info'],
-    required: true,
-    default: 'info'
+  {
+    timestamps: true, // Adds createdAt and updatedAt automatically
   },
-
-  // Notification content
-  title: {
-    type: String,
-    required: true,
-    maxlength: 200
-  },
-
-  message: {
-    type: String,
-    required: true,
-    maxlength: 500
-  },
-
-  // Read status
-  isRead: {
-    type: Boolean,
-    default: false,
-    index: true
-  },
-
-  readAt: {
-    type: Date,
-    default: null
-  },
-
-  // Action URL (optional - for clickable notifications)
-  actionUrl: {
-    type: String,
-    default: null
-  },
-
-  // Icon or image for the notification
-  icon: {
-    type: String,
-    default: null
-  },
-
-  // Related entity (if notification is about a specific item)
-
-  // Priority level
-  priority: {
-    type: String,
-    enum: ['low', 'medium', 'high', 'urgent'],
-    default: 'medium'
-  },
-
-  // Expiration (optional - for time-sensitive notifications)
-  expiresAt: {
-    type: Date,
-    default: null
-  }
-
-}, {
-  timestamps: true // Adds createdAt and updatedAt automatically
-});
+);
 
 // Compound Indexes for optimal query performance
 notificationSchema.index({ userId: 1, isRead: 1, createdAt: -1 });

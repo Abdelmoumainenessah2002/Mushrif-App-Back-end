@@ -1,688 +1,544 @@
-# Mushrif Backend API
+# Mushrif (مشرف) — Backend API
 
-![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
-![Express.js](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white)
-![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white)
-![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=JSON%20web%20tokens&logoColor=white)
-
-## 📋 Description
-
-Mushrif is a fully integrated web application backend built using Node.js and Express.js. It aims to provide a comprehensive platform for managing projects and teams in a professional and efficient manner. The system offers a wide range of advanced features that help teams collaborate more effectively and complete projects with high efficiency.
-
-## 🏗️ Architecture
-
-The backend follows a scalable MVC (Model-View-Controller) architecture designed to handle a large number of users, routes, and controllers as the application grows.
-
-```
-├── app.js                      # Main application entry point
-├── package.json               # Project dependencies and scripts
-├── API_TESTING.md            # API testing documentation and examples
-├── config/                    # Configuration files
-│   ├── connectToDB.js        # MongoDB connection setup
-│   └── passport.js           # Passport OAuth configuration (Google, Facebook, GitHub)
-├── controllers/               # Business logic controllers
-│   └── authController.js     # Authentication & user management controllers
-├── models/                    # Database models
-│   ├── User.js               # User schema, validation, JWT generation
-│   └── Notification.js       # Notification system model
-├── routes/                    # API route definitions
-│   └── authRoute.js          # Authentication & OAuth routes
-├── services/                  # Business logic services
-│   └── notification.service.js # Notification creation service
-└── utils/                     # Utility functions
-    ├── generateUID.js         # 8-digit UID generation & username creation
-    ├── loginHistoryHelper.js  # Login tracking (IP, browser, device, location)
-    └── phoneUtils.js          # International phone number validation & formatting
-```
-
-## 🚀 Features
-
-### Authentication & Authorization
-- ✅ **Local Registration** - Email/password based registration with comprehensive validation
-- ✅ **OAuth Integration** - Google, Facebook, GitHub login with automatic profile creation
-- ✅ **JWT Authentication** - Secure token-based authentication
-- ✅ **Profile Completion** - OAuth users can complete their profiles with additional info
-- ✅ **Password Hashing** - bcryptjs for secure password storage
-- ✅ **Input Validation** - Comprehensive request validation using Joi schema validation
-- ✅ **Password Complexity** - Strong password requirements with joi-password-complexity
-
-### User Management
-- ✅ **Unique User Identification** - 8-digit UID system for secure user identification
-- ✅ **Username Generation** - Automatic unique username creation based on first/last name
-- ✅ **Phone Number Validation** - International phone number support with country codes
-- ✅ **Age Verification** - Minimum age requirement (13+ years)
-- ✅ **Gender & DOB Management** - User demographic tracking
-- ✅ **Multi-Provider Support** - Seamless integration with multiple authentication providers (local, Google, Facebook, GitHub)
-
-### Login & Security Tracking
-- ✅ **Login History Tracking** - Comprehensive session logging with IP addresses
-- ✅ **Device Detection** - Browser, OS, and device type detection using ua-parser-js
-- ✅ **Geolocation** - IP-based location detection for login tracking
-- ✅ **Last Login Info** - Track user's last login time and IP address
-- ✅ **User Agent Parsing** - Extract detailed browser and device information
-
-### Notification System
-- ✅ **Welcome Notifications** - Automatic welcome message for new users
-- ✅ **OAuth Notifications** - Notifications for social login events
-- ✅ **Notification Service** - Centralized notification creation and management
-- ✅ **Notification Types** - Support for different notification types and priorities
-- ✅ **Notification Expiration** - Optional expiration dates for notifications
-
-### Additional Features
-- ✅ **Session Management** - Express session configuration for OAuth flows
-- ✅ **Proxy Trust** - Proper IP address handling in production environments
-- ✅ **CORS Support** - Cross-origin resource sharing enabled
-- ✅ **Error Handling** - Async error handling with express-async-handler
-
-## 🛠️ Tech Stack
-
-| Technology | Purpose | Version |
-|------------|---------|---------|
-| **Node.js** | Runtime Environment | Latest |
-| **Express.js** | Web Framework | ^5.1.0 |
-| **MongoDB** | Database | ^8.16.1 |
-| **Mongoose** | ODM | ^8.16.1 |
-| **JWT** | Authentication | ^9.0.2 |
-| **bcryptjs** | Password Hashing | ^3.0.2 |
-| **Joi** | Validation | ^17.13.3 |
-| **Passport** | OAuth Integration | ^0.7.0 |
-| **Multer** | File Upload | ^2.0.1 |
-| **PDFKit** | PDF Generation | ^0.17.1 |
-
-## 📱 API Endpoints
-
-### Authentication Routes (`/api/auth`)
-
-| Method | Endpoint | Description | Access | Status |
-|--------|----------|-------------|--------|--------|
-| `POST` | `/register` | Register new user with email/password | Public | ✅ Implemented |
-| `POST` | `/login` | Login with email/password | Public | ✅ Implemented |
-| `POST` | `/complete-profile/:id` | Complete OAuth user profile | Public | ✅ Implemented |
-| `GET` | `/google` | Initiate Google OAuth login | Public | ✅ Implemented |
-| `GET` | `/google/callback` | Google OAuth callback (automatic) | Public | ✅ Implemented |
-| `GET` | `/facebook` | Initiate Facebook OAuth login | Public | ✅ Implemented |
-| `GET` | `/facebook/callback` | Facebook OAuth callback (automatic) | Public | ✅ Implemented |
-| `GET` | `/github` | Initiate GitHub OAuth login | Public | ✅ Implemented |
-| `GET` | `/github/callback` | GitHub OAuth callback (automatic) | Public | ✅ Implemented |
-
-## 📝 Recent Additions & Updates
-
-### New Services Layer
-- **Notification Service** (`services/notification.service.js`) - Centralized notification management with safe creation and validation
-
-### Enhanced User Management
-- **Login History System** - Complete tracking of user login activities with:
-  - IP address logging and location detection
-  - Browser, device, and OS information parsing
-  - Geolocation data based on IP
-  - Timestamp recording for each login
-- **Unique UID Generation** - Automatic 8-digit UID creation with uniqueness validation
-- **Smart Username Generation** - Auto-generated unique usernames based on user names with conflict resolution
-- **International Phone Support** - Full support for phone numbers with country codes and formatting
-
-### Enhanced Authentication
-- **Multiple Provider Support** - Seamless switching between local and OAuth providers
-- **Profile Completion Workflow** - OAuth users can enrich their profiles after initial login
-- **Comprehensive Validation** - Joi schemas for all authentication endpoints with detailed error messages
-- **Password Security** - bcryptjs hashing with complexity validation
-
-### Notification System
-- **Welcome Notifications** - Automatic welcome message for newly registered users
-- **OAuth Event Notifications** - Automatic notifications for social login events
-- **Notification Expiration** - Support for time-limited notifications
-- **Priority Levels** - Notifications with different priority levels (low, medium, high)
-
-### API Testing Documentation
-- **API_TESTING.md** - Comprehensive API testing guide with curl examples for all endpoints
-- Detailed request/response examples
-- Error handling documentation
-
-## 📝 API Testing Examples
-
-#### 1. Register New User (Email/Password)
-```bash
-curl -X POST http://localhost:8000/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "firstName": "John",
-    "lastName": "Doe",
-    "email": "john.doe@example.com", 
-    "phoneNumber": {
-      "countryCode": "+213",
-      "localNumber": "661234567",
-      "fullNumber": "+213661234567"
-    },
-    "dateOfBirth": "1990-01-15",
-    "gender": "male",
-    "password": "StrongPassword123!"
-  }'
-```
-
-**Required Fields:**
-- `firstName` (3-50 characters)
-- `lastName` (3-50 characters)
-- `email` (valid email format)
-- `phoneNumber` (structured object)
-- `dateOfBirth` (YYYY-MM-DD, age 13-120)
-- `gender` (male/female/other)
-- `password` (min 8 chars, complex)
-
-#### 2. Login User
-```bash
-curl -X POST http://localhost:8000/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "john.doe@example.com",
-    "password": "StrongPassword123!"
-  }'
-```
-
-#### 3. Complete OAuth Profile
-```bash
-curl -X POST http://localhost:8000/api/auth/complete-profile/USER_ID \
-  -H "Content-Type: application/json" \
-  -d '{
-    "phoneNumber": {
-      "countryCode": "+213",
-      "localNumber": "661234567",
-      "fullNumber": "+213661234567"
-    },
-    "dateOfBirth": "1992-05-20",
-    "gender": "female"
-  }'
-```
-
-#### 4. OAuth Login URLs
-- **Google:** `GET http://localhost:8000/api/auth/google`
-- **Facebook:** `GET http://localhost:8000/api/auth/facebook`
-- **GitHub:** `GET http://localhost:8000/api/auth/github`
-
-**OAuth Flow:**
-1. User visits OAuth URL in browser
-2. Redirected to provider (Google/Facebook/GitHub)
-3. User authorizes application
-4. Redirected to callback URL with JWT token displayed
-
-### 📋 Request/Response Examples
-
-#### Successful Registration Response
-```json
-{
-  "success": true,
-  "message": "User registered successfully",
-  "data": {
-    "user": {
-      "_id": "507f1f77bcf86cd799439011",
-      "username": "johndoe123",
-      "uid": "12345678",
-      "firstName": "John",
-      "lastName": "Doe",
-      "email": "john.doe@example.com",
-      "phoneNumber": {
-        "countryCode": "+213",
-        "localNumber": "661234567",
-        "fullNumber": "+213661234567"
-      },
-      "dateOfBirth": "1990-01-15T00:00:00.000Z",
-      "gender": "male",
-      "isAdmin": false,
-      "isVerified": false,
-      "isActive": true,
-      "createdAt": "2025-07-12T10:30:00.000Z",
-      "updatedAt": "2025-07-12T10:30:00.000Z"
-    },
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-  }
-}
-```
-
-#### Successful Login Response
-```json
-{
-  "success": true,
-  "message": "User logged in successfully",
-  "data": {
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-  }
-}
-```
-
-#### Error Response Example
-```json
-{
-  "success": false,
-  "message": "User with this email already exists"
-}
-```
-
-### 🔐 Authentication
-
-All protected routes require JWT token in the Authorization header:
-```bash
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-```
-
-### 📋 Validation Rules
-
-#### Phone Number Structure
-```json
-{
-  "phoneNumber": {
-    "countryCode": "+213",      // Format: +XXX (1-4 digits)
-    "localNumber": "661234567", // 6-15 digits
-    "fullNumber": "+213661234567" // Complete international format
-  }
-}
-```
-
-#### Password Requirements
-- Minimum 8 characters
-- At least one uppercase letter
-- At least one lowercase letter
-- At least one number
-- At least one special character
-
-#### Date Validation
-- `dateOfBirth`: Must be valid date, user age 13-120 years
-- Format: ISO date string (YYYY-MM-DD)
-
-### Future Planned Routes
-
-#### User Management (`/api/users`)
-- `GET /profile` - Get user profile
-- `PUT /profile` - Update user profile
-- `DELETE /account` - Delete user account
-- `GET /` - Get all users (Admin)
-- `GET /:id` - Get user by ID
-- `PUT /:id/role` - Update user role (Admin)
-
-#### Project Management (`/api/projects`)
-- `GET /` - Get all projects
-- `POST /` - Create new project
-- `GET /:id` - Get project by ID
-- `PUT /:id` - Update project
-- `DELETE /:id` - Delete project
-- `POST /:id/members` - Add project members
-- `DELETE /:id/members/:userId` - Remove project member
-
-#### Team Management (`/api/teams`)
-- `GET /` - Get all teams
-- `POST /` - Create new team
-- `GET /:id` - Get team by ID
-- `PUT /:id` - Update team
-- `DELETE /:id` - Delete team
-
-#### Notifications (`/api/notifications`)
-- `GET /` - Get user notifications
-- `POST /` - Create notification
-- `PUT /:id/read` - Mark as read
-- `DELETE /:id` - Delete notification
-
-## 🔧 Installation & Setup
-
-### Prerequisites
-- Node.js (v14 or higher)
-- MongoDB (v4.4 or higher)
-- npm or yarn package manager
-
-### Environment Variables
-Create a `.env` file in the root directory:
-
-```env
-# Database
-MONGO_URI=mongodb://localhost:27017/mushrif
-
-# JWT
-JWT_SECRET=your-super-secret-jwt-key
-JWT_EXPIRE=30d
-
-# Server
-PORT=8000
-NODE_ENV=development
-
-# Session
-SESSION_SECRET=your-session-secret
-
-# OAuth Credentials
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-
-FACEBOOK_APP_ID=your-facebook-app-id
-FACEBOOK_APP_SECRET=your-facebook-app-secret
-
-GITHUB_CLIENT_ID=your-github-client-id
-GITHUB_CLIENT_SECRET=your-github-client-secret
-
-# URLs
-CLIENT_URL=http://localhost:3000
-SERVER_URL=http://localhost:8000
-```
-
-### Installation Steps
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd Mushrif/Back-end
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Set up environment variables**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your configuration
-   ```
-
-4. **Start MongoDB**
-   ```bash
-   # If using local MongoDB
-   mongod
-   
-   # Or if using MongoDB service
-   sudo systemctl start mongod
-   ```
-
-5. **Run the application**
-   ```bash
-   # Development mode with nodemon
-   npm start
-   
-   # Production mode
-   NODE_ENV=production node app.js
-   ```
-
-The server will start on `http://localhost:8000`
-
-## 📊 Database Schema
-
-### User Model
-```javascript
-{
-  username: String,      // Auto-generated unique username
-  uid: String,          // 8-digit unique identifier
-  firstName: String,    // User's first name
-  lastName: String,     // User's last name
-  email: String,        // Unique email address
-  phoneNumber: {        // Phone number object
-    countryCode: String,
-    localNumber: String,
-    fullNumber: String
-  },
-  dateOfBirth: Date,    // Date of birth
-  gender: String,       // User's gender
-  password: String,     // Hashed password
-  isAdmin: Boolean,     // Admin privileges
-  isVerified: Boolean,  // Email verification status
-  isActive: Boolean,    // Account status
-  isOAuthUser: Boolean, // OAuth registration flag
-  primaryProvider: String, // Primary auth provider
-  providers: Array,     // OAuth providers used
-  loginHistory: Array,  // Login history tracking
-  createdAt: Date,     // Account creation date
-  updatedAt: Date      // Last update date
-}
-```
-
-## 🧪 Testing
-
-### API Testing
-Refer to `API_TESTING.md` for detailed API testing examples with curl commands and expected responses.
-
-### Running Tests
-```bash
-# Run all tests
-npm test
-
-# Run tests with coverage
-npm run test:coverage
-
-# Run tests in watch mode
-npm run test:watch
-```
-
-## 🔒 Security Features
-
-- **Password Hashing**: bcrypt with salt rounds
-- **JWT Authentication**: Secure token-based authentication
-- **Input Validation**: Comprehensive request validation
-- **Rate Limiting**: API rate limiting (planned)
-- **CORS Protection**: Cross-origin resource sharing configuration
-- **SQL Injection Protection**: Mongoose ODM protection
-- **XSS Protection**: Input sanitization
-- **Login History**: IP and user agent tracking
-
-## 📈 Scalability Considerations
-
-The architecture is designed to handle growth:
-
-### Database Scaling
-- **Indexing Strategy**: Optimized database indexes for queries
-- **Connection Pooling**: Efficient database connection management
-- **Data Partitioning**: Horizontal scaling capabilities (future)
-
-### Application Scaling
-- **Modular Architecture**: Easy to add new modules and features
-- **Microservices Ready**: Can be split into microservices
-- **Load Balancing**: Ready for load balancer integration
-- **Caching Strategy**: Redis integration planned for session and data caching
-
-### Performance Optimization
-- **Async Operations**: Non-blocking asynchronous operations
-- **Middleware Optimization**: Efficient middleware stack
-- **Response Compression**: Gzip compression for responses
-- **Image Optimization**: Optimized file upload and processing
-
-## � Utilities & Services Documentation
-
-### Login History Helper (`utils/loginHistoryHelper.js`)
-Comprehensive tracking of user login activities with detailed device and location information.
-
-**Features:**
-- **User Agent Parsing**: Extracts browser name, version, device type, vendor, model, OS name and version
-- **IP-based Geolocation**: Determines country and city from IP address using geolocation API
-- **Login Entry Creation**: Generates structured login history records with all metadata
-- **Device Detection**: Identifies mobile/tablet/desktop devices
-
-**Login History Object Structure:**
-```javascript
-{
-  ipAddress: "192.168.1.1",
-  provider: "local", // or "google", "facebook", "github"
-  isSuccessful: true,
-  loginTime: "2025-07-12T10:30:00.000Z",
-  userAgent: "Mozilla/5.0...",
-  browser: {
-    name: "Chrome",
-    version: "120.0.0",
-    major: "120"
-  },
-  device: {
-    type: "desktop",
-    vendor: "Apple",
-    model: "MacBook Pro"
-  },
-  os: {
-    name: "macOS",
-    version: "14.5"
-  },
-  location: {
-    country: "United States",
-    city: "San Francisco"
-  }
-}
-```
-
-### UID & Username Generation (`utils/generateUID.js`)
-Automatic generation of unique user identifiers and usernames.
-
-**Functions:**
-- **`generateUID()`** - Generates 8-digit unique user ID
-  - Validates uniqueness against database
-  - Prevents collisions with retry logic
-  - Returns: String (8 digits)
-
-- **`generateUsername(firstName, lastName)`** - Creates unique username
-  - Format: `firstname.lastname`
-  - Auto-increment suffix if collision exists
-  - Cleans special characters and spaces
-  - Returns: String
-
-**Example:**
-```javascript
-const uid = await generateUID(); // "12345678"
-const username = await generateUsername("John", "Doe"); // "john.doe"
-```
-
-### Phone Number Utilities (`utils/phoneUtils.js`)
-International phone number validation and formatting with country code support.
-
-**Features:**
-- Country code validation
-- Phone number formatting
-- Number validation
-- Support for multiple phone formats
-
-**Phone Object Structure:**
-```javascript
-{
-  countryCode: "+213",       // 1-4 digits with + prefix
-  localNumber: "661234567",  // 6-15 digits
-  fullNumber: "+213661234567" // Complete formatted number
-}
-```
-
-### Notification Service (`services/notification.service.js`)
-Centralized service for creating and managing user notifications.
-
-**`createNotification(data)`** - Creates a new notification
-
-**Parameters:**
-```javascript
-{
-  userId: ObjectId,           // Required - User ID
-  title: String,             // Required - Notification title
-  message: String,           // Required - Notification message
-  type: String,              // Optional - 'info'|'success'|'warning'|'error' (default: 'info')
-  priority: String,          // Optional - 'low'|'medium'|'high' (default: 'medium')
-  expiresAt: Date            // Optional - Notification expiration date
-}
-```
-
-**Returns:** Promise<Notification> - Created notification document
-
-**Example Usage:**
-```javascript
-const notification = await createNotification({
-  userId: req.user._id,
-  title: "Welcome!",
-  message: "Welcome to Mushrif! Complete your profile to get started.",
-  type: "success",
-  priority: "high"
-});
-```
-
-## 🔧 Configuration Files
-
-### Passport Configuration (`config/passport.js`)
-Handles OAuth strategies for Google, Facebook, and GitHub authentication.
-
-**Configured Strategies:**
-- Google OAuth 2.0
-- Facebook OAuth 2.0
-- GitHub OAuth 2.0
-
-**Environment Variables Required:**
-```
-GOOGLE_CLIENT_ID
-GOOGLE_CLIENT_SECRET
-GOOGLE_CALLBACK_URL
-
-FACEBOOK_APP_ID
-FACEBOOK_APP_SECRET
-FACEBOOK_CALLBACK_URL
-
-GITHUB_CLIENT_ID
-GITHUB_CLIENT_SECRET
-GITHUB_CALLBACK_URL
-```
-
-### Database Connection (`config/connectToDB.js`)
-Establishes MongoDB connection with Mongoose.
-
-**Configuration:**
-- Connection pooling
-- Error handling
-- Automatic reconnection
-
-**Environment Variables Required:**
-```
-MONGODB_URI
-DB_USER
-DB_PASSWORD
-```
-
-## �🚧 Roadmap
-
-### Phase 1 (Current)
-- [x] User authentication system
-- [x] OAuth integration
-- [x] Basic user management
-- [x] Input validation
-
-### Phase 2 (Next)
-- [ ] Project management system
-- [ ] Team collaboration features
-- [ ] Real-time notifications
-- [ ] File upload and management
-
-### Phase 3 (Future)
-- [ ] Advanced analytics
-- [ ] API rate limiting
-- [ ] Advanced security features
-- [ ] Mobile app API support
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-### Code Style
-- Use ESLint configuration
-- Follow naming conventions
-- Add JSDoc comments for functions
-- Write tests for new features
-
-## 📄 License
-
-This project is licensed under the ISC License - see the [LICENSE](LICENSE) file for details.
-
-## 👨‍💻 Author
-
-**Abde Lmoumain Nessah**
-- GitHub: [@AbdelmoumaineNessah2002](https://github.com/Abdelmoumainenessah2002/)
-- Email: Abd.nessah02@gmail.com
-
-## 🙏 Acknowledgments
-
-- Express.js team for the excellent web framework
-- MongoDB team for the robust database solution
-- Passport.js for OAuth integration
-- All contributors and open-source projects used
-
-## 📞 Support
-
-If you have any questions or need help, please:
-1. Check the [API Testing Guide](API_TESTING.md)
-2. Open an issue on GitHub
-3. Contact the development team
+**Mushrif** is an enterprise-grade, multi-tenant work, project, and team management backend platform built on Node.js and Express.js. Designed for high scalability, real-time collaboration, and internationalization, the system leverages MongoDB for data persistence, Redis for distributed session management, atomic rate limiting, and caching, and BullMQ for asynchronous background job execution.
 
 ---
 
-**Built with ❤️ for efficient project and team management**
+## 📑 Table of Contents
+
+- [Architectural Overview](#-architectural-overview)
+- [Technology Stack](#-technology-stack)
+- [System Architecture & Core Subsystems](#-system-architecture--core-subsystems)
+  - [1. Authentication & Session Architecture](#1-authentication--session-architecture)
+  - [2. Redis Infrastructure & Distributed Operations](#2-redis-infrastructure--distributed-operations)
+  - [3. Asynchronous Task Queues & Workers](#3-asynchronous-task-queues--workers)
+  - [4. Rate Limiting Subsystem](#4-rate-limiting-subsystem)
+  - [5. Internationalization (i18n) & Dynamic Messaging](#5-internationalization-i18n--dynamic-messaging)
+  - [6. Work & Organization Management Domain](#6-work--organization-management-domain)
+  - [7. Cloud Storage & Media Uploads](#7-cloud-storage--media-uploads)
+- [API Route Reference](#-api-route-reference)
+  - [Authentication (`/api/auth`)](#authentication-apiauth)
+  - [Password Management (`/api/password`)](#password-management-apipassword)
+  - [Email Verification & Updates (`/api/emails`)](#email-verification--updates-apiemails)
+  - [User Management (`/api/users`)](#user-management-apiusers)
+  - [Administration & Moderation (`/api/admin`)](#administration--moderation-apiadmin)
+  - [Organization & Work Domain (`/api/work/organizations`)](#organization--work-domain-apiworkorganizations)
+- [Database Models & Domain Schema](#-database-models--domain-schema)
+- [Environment Configuration](#-environment-configuration)
+- [Getting Started & Operational Commands](#-getting-started--operational-commands)
+- [Codebase Audit & Technical Observations](#-codebase-audit--technical-observations)
+- [License & Authors](#-license--authors)
+
+---
+
+## 🏛 Architectural Overview
+
+```
+                           +------------------------+
+                           |  Client Applications   |
+                           | (Web, Mobile, Postman) |
+                           +-----------+------------+
+                                       |
+                                HTTP / HTTPS
+                                       |
+                     +-----------------v-----------------+
+                     |    Express.js 5 Application       |
+                     |  (Trust Proxy, CORS, Cookies,     |
+                     |   i18n Lang Extraction)           |
+                     +-----------------+-----------------+
+                                       |
+               +-----------------------+-----------------------+
+               |                       |                       |
+     +---------v---------+   +---------v---------+   +---------v---------+
+     |   Rate Limiters   |   | Token & Session   |   | File Uploads      |
+     | (Redis Lua Script |   | Middleware        |   | (Multer Memory    |
+     | + Memory Fallback)|   | (Redis Session ID)|   |  -> Cloudinary)   |
+     +---------+---------+   +---------+---------+   +-------------------+
+               |                       |
+               +-----------+-----------+
+                           |
+                     +-----v-----+
+                     | Controllers
+                     +-----+-----+
+                           |
+             +-------------+-------------+
+             |                           |
+   +---------v---------+       +---------v---------+
+   |   MongoDB via     |       |   BullMQ Queues   |
+   |   Mongoose ODM    |       | (Redis Queue Store|
+   | (Data Persistence)|       +---------+---------+
+   +-------------------+                 |
+                               +---------v---------+
+                               | Dedicated Workers |
+                               | - email.worker    |
+                               | - notif.worker    |
+                               +-------------------+
+```
+
+---
+
+## 🛠 Technology Stack
+
+| Layer | Technology | Version | Purpose |
+|---|---|---|---|
+| **Runtime** | Node.js | `>= 18.0.0` | Server JavaScript execution runtime |
+| **Framework** | Express.js | `^5.1.0` | HTTP application framework |
+| **Primary Database** | MongoDB | `>= 6.0` | Primary document database |
+| **ODM** | Mongoose | `^8.16.1` | MongoDB modeling and schema validation |
+| **In-Memory Store** | Redis (`ioredis`) | `^5.11.1` | Sessions, rate limiting, geolocation cache, cooldowns |
+| **Job Queue** | BullMQ | `^6.1.2` | Distributed job queues for emails and notifications |
+| **Authentication** | JWT (`jsonwebtoken`) | `^9.0.2` | Signed Access (15m) and Refresh (30d) tokens |
+| **OAuth 2.0** | Passport.js | `^0.7.0` | Social authentication (Google, Facebook, GitHub) |
+| **Hashing & Crypto** | `bcryptjs` + `crypto` | `^3.0.2` | Password hashing, OTP hashing, UID generation |
+| **Validation** | Joi + Password Complexity | `^17.13.3` | Request payload schema validation |
+| **Media Storage** | Cloudinary v2 | `^2.9.0` | Image processing, storage, and CDN delivery |
+| **Upload Processing**| Multer | `^2.0.2` | Multipart/form-data memory streaming |
+| **Email Delivery** | Nodemailer | `^7.0.13` | SMTP transport client for transactional emails |
+| **Device Parsing** | `ua-parser-js` | `^1.0.41` | Browser, OS, and hardware device detection |
+| **Phone Parsing** | `libphonenumber-js`| `^1.12.41` | E.164 international phone normalization |
+
+---
+
+## 🧩 System Architecture & Core Subsystems
+
+### 1. Authentication & Session Architecture
+
+Mushrif implements a secure **Dual-Token + Redis Session** pattern designed to prevent token theft while enabling instantaneous, server-side session revocation.
+
+```
+       Client                           Server                           Redis
+         |                                |                                |
+         |--- 1. POST /api/auth/login --->|                                |
+         |    (email, password)           |--- 2. Verify credentials ----->|
+         |                                |--- 3. Create Session (Lua) --->|
+         |                                |<-- 4. SessionId created -------|
+         |                                |                                |
+         |<-- 5. Response: ---------------|                                |
+         |    - Access Token (JSON, 15m)  |                                |
+         |    - Refresh Token (Cookie,30d)|                                |
+         |                                |                                |
+         |--- 6. API Call (Bearer Token)->|                                |
+         |    Authorization: Bearer <jwt> |--- 7. Validate JWT Signature   |
+         |                                |--- 8. Check Session Exists --->|
+         |                                |<-- 9. Valid / Revoked ---------|
+         |<-- 10. Data / 401 Unauthorized-|                                |
+```
+
+#### Key Architecture Components:
+- **Access Token (Short-Lived, 15 Minutes)**:
+  - Carries claims: `id` (User ObjectId), `role` (Role array), `sessionId` (UUID), `type: "access"`.
+  - Signed using dedicated `ACCESS_TOKEN_SECRET`.
+  - Sent by the client in the `Authorization: Bearer <token>` HTTP header.
+- **Refresh Token (Long-Lived, 30 Days)**:
+  - Carries claims: `id`, `sessionId`, `type: "refresh"`.
+  - Signed using dedicated `REFRESH_TOKEN_SECRET`.
+  - Stored in an `HttpOnly`, `SameSite=Lax` (or `None` in production with HTTPS), secure cookie.
+- **Redis Server-Side Session Tracking**:
+  - `mushrif:auth:session:{sessionId}`: Points to `userId` with an automatic 30-day TTL.
+  - `mushrif:auth:user:{userId}:sessions`: Redis SET tracking all active `sessionId` instances for a given user.
+- **Atomic Session Management (Lua Scripts)**:
+  - **Creation**: Atomically sets session key, adds to user set, and updates set expiration.
+  - **Single Logout**: Deletes session key and removes the ID from the user set.
+  - **Revoke All (`deleteAllUserSessions`)**: Atomically fetches all user session IDs, deletes every session key, and deletes the user session set. Triggered during:
+    - User password reset (`/api/password/reset`).
+    - Password creation for OAuth accounts (`/api/password/make-password/:id`).
+    - Logout from all devices (`/api/auth/logout-all`).
+    - Admin account suspension (`/api/admin/suspend/:id`).
+- **Fail-Closed Verification**:
+  - `verifyToken` middleware validates the JWT and verifies that the `sessionId` exists in Redis for that user.
+  - If Redis is offline or experiences connection timeouts, the middleware responds with `503 SerVvice Unavailable` rather than failing open.
+- **Role Hierarchy**:
+  - Defined in `utils/roleHierarchy.utils.js`:
+    $$\text{super\_admin (1)} < \text{admin (2)} < \text{support\_agent (3)} < \text{user (4)}$$
+  - Access is evaluated with `hasMinRole(userRole, targetRole)`.
+- **OAuth 2.0 Integration**:
+  - Google, Facebook, and GitHub strategies configured via Passport.
+  - Automatically handles user discovery, account linking, email conflicts, and temporary OAuth placeholders.
+  - Returns a responsive developer-friendly HTML authentication page (`renderOAuthSuccessPage`) with one-click token copying and metadata inspection.
+
+---
+
+### 2. Redis Infrastructure & Distributed Operations
+
+Implemented in `config/redis.js` and `services/redis.service.js`:
+- **Singleton Connection**: Managed via `ioredis` with exponential backoff (`retryStrategy`) and error handling for connection spikes.
+- **Standardized Namespacing**: Format `mushrif:<subsystem>:<entityType>:<identifier>`:
+  - Sessions: `mushrif:auth:session:{sessionId}` and `mushrif:auth:user:{userId}:sessions`
+  - Rate Limiting: `mushrif:rl:{endpoint}:ip:{safeIp}`
+  - Geolocation Cache: `mushrif:geo:ip:{ipAddress}` (7-day TTL)
+  - Login Notification Cooldown: `mushrif:cooldown:login_notif:{userId}:{fingerprint}` (1-hour TTL)
+- **Non-Blocking Scans**: Safe pattern deletion via `delByPattern` using iterative `SCAN` (strictly avoids blocking `KEYS *`).
+- **Fail-Open Data Caching**: Read/write caching operations gracefully return `null` if Redis is offline without crashing incoming HTTP requests.
+
+---
+
+### 3. Asynchronous Task Queues & Workers
+
+Mushrif uses **BullMQ** on Redis to separate long-running asynchronous operations from synchronous HTTP response cycles.
+
+```
++--------------------------+
+| Express Request Handler  |
++------------+-------------+
+             |
+             | Dispatches Job (Non-blocking)
+             v
++--------------------------+          +--------------------------+
+|  services/notifyUser.js  |          |      Email Queue         |
+|                          +--------->|  Name: "mushrif-email"   |
+| (Resolves Recipients in  |          +------------+-------------+
+|  single DB query)        |                       | Processed By
+|                          |          +------------v-------------+
+|                          |          |  workers/email.worker.js |
+|                          |          |  (Nodemailer SMTP, c=5)  |
+|                          |          +--------------------------+
+|                          |
+|                          |          +--------------------------+
+|                          |          |   Notification Queue     |
+|                          +--------->| Name: "mushrif-notif..." |
+|                          |          +------------+-------------+
++--------------------------+                       | Processed By
+                                      +------------v-------------+
+                                      | workers/notif.worker.js  |
+                                      | (MongoDB write, c=10)    |
+                                      +--------------------------+
+```
+
+#### Queues & Workers:
+1. **Email Queue (`mushrif-email`)**:
+   - Defined in `queues/email.queue.js`.
+   - Consumer: `workers/email.worker.js` (concurrency: 5).
+   - Automatically handles retries (3 attempts with exponential backoff starting at 5s).
+   - Dispatches transactional HTML emails for welcome notifications, security alerts, and verification.
+2. **Notification Queue (`mushrif-notification`)**:
+   - Defined in `queues/notification.queue.js`.
+   - Consumer: `workers/notification.worker.js` (concurrency: 10).
+   - Persists in-app notifications directly into MongoDB with dynamic translation parameters.
+3. **Unified Dispatcher (`services/notifyUser.service.js`)**:
+   - Accepts array of `userIds`, user preferences (`email`, `inApp`), and payloads.
+   - Batch resolves recipient emails in a single query (`$in: uniqueUserIds`).
+   - Dispatches queue jobs concurrently with `Promise.all`.
+
+---
+
+### 4. Rate Limiting Subsystem
+
+Centralized in `middlewares/rateLimiter.middleware.js`:
+- **Atomic Distributed Counters**: Uses a Redis Lua script executing `INCR` followed by `EXPIRE` on first access.
+- **Fail-Safe In-Memory Fallback**: If Redis is offline, automatically switches to a local, bounded in-memory map to maintain application protection.
+- **Standard Headers**:
+  - `X-RateLimit-Limit`: Maximum requests allowed in current window.
+  - `X-RateLimit-Remaining`: Remaining request quota.
+  - `X-RateLimit-Reset`: Unix timestamp when quota resets.
+  - `Retry-After`: Seconds to wait before retrying (sent on HTTP 429).
+- **Configured Limits**:
+  - Login: 5 requests / 15 minutes (`RL_LOGIN_MAX`, `RL_LOGIN_WINDOW`)
+  - Registration: 5 requests / 1 hour (`RL_REGISTER_MAX`, `RL_REGISTER_WINDOW`)
+  - Forgot Password: 3 requests / 15 minutes (`RL_FORGOT_PASSWORD_MAX`, `RL_FORGOT_PASSWORD_WINDOW`)
+  - Reset Password: 5 requests / 15 minutes (`RL_RESET_PASSWORD_MAX`, `RL_RESET_PASSWORD_WINDOW`)
+  - Email Verification Request: 3 requests / 15 minutes (`RL_VERIFY_EMAIL_MAX`, `RL_VERIFY_EMAIL_WINDOW`)
+  - Email Token Validation: 10 requests / 15 minutes
+  - Email Change OTP Request: 3 requests / 15 minutes
+  - Email Change OTP Verification: 5 attempts / 15 minutes (`RL_OTP_MAX`, `RL_OTP_WINDOW`)
+  - OAuth Initiation: 20 requests / 15 minutes (`RL_OAUTH_MAX`, `RL_OAUTH_WINDOW`)
+
+---
+
+### 5. Internationalization (i18n) & Dynamic Messaging
+
+- **Languages Supported**: Arabic (`ar`, default), English (`en`), French (`fr`).
+- **Header Extraction**: `middlewares/lang.middleware.js` inspects `accept-language` and sets `req.lang`.
+- **Dynamic Translation**: `utils/t.utils.js` replaces `{{placeholder}}` variables in localized JSON files (`i18n/*.json`).
+- **Constant Keys**: `constants/messages.js` uses an ES6 `Proxy` to safely provide type-agnostic message keys.
+- **Localized Notifications**: Notifications store the translation key (`title`, `message`) and a `vars` JSON object in MongoDB; translation occurs dynamically upon client retrieval or email dispatch.
+
+---
+
+### 6. Work & Organization Management Domain
+
+The backend includes a comprehensive organizational data architecture designed for multi-tenant workspace and project management:
+
+```
++-----------------------------------------------------------+
+|                   Organization Model                      |
+| (Name, Slug, OwnerId, Settings, Logo, Default Locale/TZ)  |
++-----------------------------+-----------------------------+
+                              |
+       +----------------------+----------------------+
+       | 1:N                                         | 1:N
++------v--------------------+                 +------v--------------------+
+| OrganizationMember Model  |                 |      Workspace Model      |
+| (OWNER, ADMIN, MEMBER)    |                 | (Settings, Views, Status) |
++---------------------------+                 +-------------+-------------+
+                                                            |
+                                     +----------------------+----------------------+
+                                     | 1:N                                         | 1:N
+                              +------v--------------------+                 +------v--------------------+
+                              |  WorkspaceMember Model    |                 |       Project Model       |
+                              |  (ADMIN, MEMBER, GUEST)   |                 | (Key, Name, Owner, Status)|
+                              +---------------------------+                 +-------------+-------------+
+                                                                                          |
+                                                   +--------------------------------------+----------------------+
+                                                   | 1:N                                  | 1:N                  | 1:N
+                                            +------v-------------+                 +------v-------------+ +------v-------------+
+                                            |   WorkItem Model   |                 |    Milestone Model | |     Epic Model     |
+                                            | (TASK, BUG, STORY) |                 | (Due Date, Status) | | (Planning, Active) |
+                                            +------+-------------+                 +--------------------+ +--------------------+
+                                                   |
+                        +--------------------------+--------------------------+
+                        | 1:N                                                 | 1:N
+                 +------v-------------+                                +------v-------------+
+                 |   Comment Model    |                                |  Attachment Model  |
+                 | (Threaded, Author) |                                | (Cloudinary/Files) |
+                 +--------------------+                                +--------------------+
+```
+
+#### Domain Models Implemented:
+1. **Organization (`models/work/Organization.model.js`)**: Name, slug, owner reference, logo, multi-tenant preferences (timezone, default language, date/time format, week starts on, notifications).
+2. **OrganizationMember (`models/work/OrganizationMember.model.js`)**: Links User to Organization with roles (`OWNER`, `ADMIN`, `MEMBER`) and statuses (`INVITED`, `ACTIVE`, `SUSPENDED`, `REMOVED`).
+3. **Workspace & WorkspaceMember (`models/work/workspace.model.js`, `WorkspaceMember.model.js`)**: Independent organizational units.
+4. **Project & ProjectMember (`models/work/Project.model.js`, `ProjectMember.model.js`)**: Unique project keys (e.g. `PROJ`), priority, status, and issue counter.
+5. **Team & TeamMember (`models/work/Team.model.js`, `TeamMember.model.js`)**: Team groupings within workspaces.
+6. **WorkItem (`models/work/WorkItem.model.js`)**: Tasks, Bugs, Stories with sequential project issue numbers, kanban status (`TODO`, `IN_PROGRESS`, `IN_REVIEW`, `DONE`), priorities, and assignees.
+7. **Epics & Milestones (`models/work/Epic.model.js`, `Milestone.model.js`)**: High-level roadmaps and release targets.
+8. **Comments, Attachments, Labels, & Activities (`models/work/`)**: Threaded discussions, Cloudinary attachments, project taxonomy, and immutable audit logs.
+
+---
+
+### 7. Cloud Storage & Media Uploads
+
+- **Storage Provider**: Cloudinary via `services/cloudinary.service.js`.
+- **Upload Pipeline**: Multer memory storage (`middlewares/upload.middleware.js`) streams image buffers directly to Cloudinary without creating temporary disk files.
+- **Transaction Safety**: In `organizationController.js`, image uploads execute *before* opening the MongoDB database transaction. If the database transaction fails, uploaded images are automatically pruned from Cloudinary to prevent orphaned storage.
+
+---
+
+## 📡 API Route Reference
+
+### Authentication (`/api/auth`)
+
+| Method | Route | Access | Rate Limit | Description |
+|---|---|---|---|---|
+| `POST` | `/api/auth/register` | Public | 5 / 1h | Registers user, hashes password, generates 10-char alphanumeric UID, creates welcome notification, issues Access Token & Refresh Token cookie. |
+| `POST` | `/api/auth/login` | Public | 5 / 15m | Verifies credentials, records login history, handles login email alert cooldown, creates Redis session, returns tokens. |
+| `POST` | `/api/auth/refresh` | Public | None | Reads HttpOnly `refreshToken` cookie, verifies Redis session, issues new short-lived Access Token. |
+| `POST` | `/api/auth/logout` | Private/Public | None | Revokes current session in Redis and clears the refresh cookie. |
+| `POST` | `/api/auth/logout-all` | Private | None | Atomically revokes all active Redis sessions for the user across all devices. |
+| `POST` | `/api/auth/complete-profile/:id` | Private (Self) | 10 / 15m | Completes phone, DOB, and gender for OAuth users. |
+| `GET` | `/api/auth/google` | Public | 20 / 15m | Initiates Google OAuth 2.0 flow. |
+| `GET` | `/api/auth/google/callback` | Public | None | Google callback, issues tokens, and renders developer success UI. |
+| `GET` | `/api/auth/facebook` | Public | 20 / 15m | Initiates Facebook OAuth flow. |
+| `GET` | `/api/auth/facebook/callback` | Public | None | Facebook callback handler. |
+| `GET` | `/api/auth/github` | Public | 20 / 15m | Initiates GitHub OAuth flow. |
+| `GET` | `/api/auth/github/callback` | Public | None | GitHub callback handler (fetches primary email via GitHub API). |
+
+---
+
+### Password Management (`/api/password`)
+
+| Method | Route | Access | Rate Limit | Description |
+|---|---|---|---|---|
+| `POST` | `/api/password/forgot` | Public | 3 / 15m | Generates 64-character hex verification token and emails reset link. |
+| `GET` | `/api/password/validate/:token` | Public | 10 / 15m | Validates existence and expiry of password reset token. |
+| `POST` | `/api/password/reset` | Public | 5 / 15m | Updates password, consumes token, revokes all active Redis sessions, sends security alerts. |
+| `POST` | `/api/password/make-password/:id`| Private (Self) | None | Enables OAuth users to set a local password, linking a `local` provider and revoking sessions. |
+
+---
+
+### Email Verification & Updates (`/api/emails`)
+
+| Method | Route | Access | Rate Limit | Description |
+|---|---|---|---|---|
+| `POST` | `/api/emails/:id/verify-email` | Private (Self) | 3 / 15m | Sends email verification token link. |
+| `GET` | `/api/emails/validate-email/:token`| Public | 10 / 15m | Checks if verification token exists and is valid. |
+| `POST` | `/api/emails/verify-email` | Public | 10 / 15m | Validates token, marks `isVerified = true`, deletes token. |
+| `POST` | `/api/emails/:id/change-email-request`| Private (Self) | 3 / 15m | Generates 6-digit hashed OTP and sends it to current email. |
+| `GET` | `/api/emails/:id/change-email-verify-otp`| Private (Self)| 5 / 15m | Validates 6-digit numeric OTP. |
+| `PATCH` | `/api/emails/:id/change-email` | Private (Self) | 5 / 15m | Changes email, sets `isVerified = false`, dispatches verification email to new address and security alert to old address. |
+
+---
+
+### User Management (`/api/users`)
+
+| Method | Route | Access | Rate Limit | Description |
+|---|---|---|---|---|
+| `PATCH` | `/api/users/:id/profile` | Private (Self) | None | Updates profile fields (username, names, bio, social media links). |
+| `PATCH` | `/api/users/:id/profile-photo` | Private (Self) | None | Uploads profile picture to Cloudinary and deletes old picture. |
+
+---
+
+### Administration & Moderation (`/api/admin`)
+
+| Method | Route | Access | Rate Limit | Description |
+|---|---|---|---|---|
+| `PUT` | `/api/admin/suspend/:id` | Admin/SuperAdmin | None | Deactivates account (`isActive = false`), atomically revokes all user sessions in Redis. |
+| `PUT` | `/api/admin/unsuspend/:id` | Admin/SuperAdmin | None | Reactivates suspended account (`isActive = true`). |
+
+---
+
+### Organization & Work Domain (`/api/work/organizations`)
+
+| Method | Route | Access | Rate Limit | Description |
+|---|---|---|---|---|
+| `POST` | `/api/work/organizations/` | Private | None | Creates organization with optional logo upload (Cloudinary) in a MongoDB transaction, sets owner member, and sends notifications. |
+| `GET` | `/api/work/organizations/:organizationId/members` | Private (Member) | None | Retrieves all active members for the specified organization. |
+| `PATCH` | `/api/work/organizations/:organizationId/settings`| Private (Owner/Admin) | None | Partially updates organization preferences and settings. |
+
+---
+
+## 🗄 Database Models & Domain Schema
+
+### 1. User (`models/auth/User.model.js`)
+```javascript
+{
+  username: { type: String, unique: true, required: true },
+  uid: { type: String, unique: true, required: true, length: 10 }, // 10-char alphanumeric uppercase
+  firstName: { type: String, required: true },
+  lastName: { type: String, required: true },
+  email: { type: String, unique: true, required: true },
+  phoneNumber: {
+    countryCode: String, // format: +XXX
+    localNumber: String,
+    fullNumber: String   // normalized E.164
+  },
+  dateOfBirth: Date,     // validated age 13-120
+  gender: { type: String, enum: ["male", "female", "other", "prefer_not_to_say"] },
+  password: String,      // bcrypt hashed
+  providers: [{
+    provider: String,    // "local", "google", "facebook", "github"
+    providerId: String,
+    email: String,
+    displayName: String,
+    photoURL: String,
+    accessToken: String,
+    refreshToken: String
+  }],
+  authMethods: [String],
+  primaryProvider: { type: String, default: "local" },
+  profilePhoto: { url: String, publicId: String },
+  role: [{ type: String, enum: ["user", "support_agent", "admin", "super_admin"], default: ["user"] }],
+  isVerified: { type: Boolean, default: false },
+  isActive: { type: Boolean, default: true },
+  isDeleted: { type: Boolean, default: false },
+  loginHistory: [{
+    ipAddress: String,
+    userAgent: String,
+    browser: { name: String, version: String, major: String },
+    device: { type: String, vendor: String, model: String },
+    os: { name: String, version: String },
+    location: { country: String, city: String, timezone: String, latitude: Number, longitude: Number },
+    loginTime: Date,
+    isSuccessful: Boolean,
+    provider: String
+  }],
+  lastLoginIP: String,
+  lastLoginTime: Date,
+  hasWelcomeNotification: Boolean
+}
+```
+
+### 2. VerificationToken & OTP (`models/auth/`)
+- **VerificationToken**: Stores 64-hex tokens for `RESET_PASSWORD` (10m TTL) and `VERIFY_EMAIL` (24h TTL) with automatic MongoDB index expiry.
+- **OTP**: Stores 6-digit bcrypt-hashed numeric codes for `CHANGE_EMAIL` and `LOGIN` with automatic MongoDB index expiry.
+
+### 3. Notification (`models/Notification.js`)
+- Stores `userId`, `title` (message key), `message` (message key), `vars` (dynamic data dictionary), `isRead`, `priority`, `type`, with a 90-day automatic TTL index.
+
+---
+
+## ⚙️ Environment Configuration
+
+| Variable | Required | Default | Purpose |
+|---|---|---|---|
+| `PORT` | No | `8000` | Port for the Express HTTP server |
+| `NODE_ENV` | No | `development` | Runtime environment (`development`, `production`) |
+| `MONGO_URI` | **Yes** | — | MongoDB connection connection string |
+| `ACCESS_TOKEN_SECRET` | **Yes** | — | Secret key used to sign 15-minute Access Tokens |
+| `REFRESH_TOKEN_SECRET` | **Yes** | — | Secret key used to sign 30-day Refresh Tokens |
+| `SESSION_SECRET` | **Yes** | — | Secret key for Express sessions |
+| `REDIS_HOST` | No | `127.0.0.1` | Redis server host |
+| `REDIS_PORT` | No | `6379` | Redis server port |
+| `REDIS_PASSWORD` | No | `""` | Redis authentication password |
+| `REDIS_DB` | No | `0` | Redis logical database index |
+| `REDIS_TLS` | No | `false` | Enable TLS/SSL connection for Redis |
+| `SMTP_HOST` | **Yes** | — | SMTP mail server hostname |
+| `SMTP_PORT` | **Yes** | `587` | SMTP port (465 for SSL, 587 for TLS) |
+| `SMTP_USER` | **Yes** | — | SMTP authentication user |
+| `SMTP_PASS` | **Yes** | — | SMTP authentication password |
+| `SMTP_FROM` | **Yes** | — | Sender email address for outgoing mail |
+| `CLOUDINARY_CLOUD_NAME`| **Yes**| — | Cloudinary cloud identifier |
+| `CLOUDINARY_API_KEY` | **Yes** | — | Cloudinary API access key |
+| `CLOUDINARY_API_SECRET`| **Yes** | — | Cloudinary API secret |
+| `GOOGLE_CLIENT_ID` | Optional | — | Google OAuth client identifier |
+| `GOOGLE_CLIENT_SECRET`| Optional | — | Google OAuth client secret |
+| `FACEBOOK_APP_ID` | Optional | — | Facebook App ID |
+| `FACEBOOK_APP_SECRET` | Optional | — | Facebook App Secret |
+| `GITHUB_CLIENT_ID` | Optional | — | GitHub OAuth Client ID |
+| `GITHUB_CLIENT_SECRET`| Optional | — | GitHub OAuth Client Secret |
+| `CLIENT_URL` | No | `http://localhost:3000` | Frontend web client URL |
+| `SERVER_URL` | No | `http://localhost:8000` | Backend API server URL |
+
+---
+
+## 🚀 Getting Started & Operational Commands
+
+### 1. Prerequisites
+- **Node.js**: `v18.x` or `v20.x`
+- **MongoDB**: Local daemon or MongoDB Atlas instance
+- **Redis**: Local server or managed Redis (Upstash, AWS ElastiCache)
+
+### 2. Setup
+```bash
+# Clone repository
+git clone https://github.com/AbdelmoumaineNessah2002/Mushrif-App-Back-end.git
+cd Mushrif-App-Back-end
+
+# Install dependencies
+npm install
+
+# Configure environment variables
+cp .env.example .env
+# Edit .env with your credentials
+```
+
+### 3. Running the Application
+```bash
+# Start API server in development mode (with nodemon)
+npm start
+
+# Start API server directly
+node app.js
+
+# Start BullMQ Email Worker (Dedicated process)
+npm run worker:email
+
+# Start BullMQ In-App Notification Worker (Dedicated process)
+node workers/notification.worker.js
+```
+
+---
+
+## 🔍 Codebase Audit & Technical Observations
+
+During this comprehensive code audit, the following findings and implementation nuances were noted:
+
+1. **`controllers/work/organizationMemberController.js`**:
+   - Lines 19 & 180 call `validateObjectId({ id: ... })`, but `validateObjectId` is **not imported** in the file.
+   - Line 8 imports `{ OrganizationMember }` via destructuring, whereas `models/work/OrganizationMember.model.js` exports `module.exports = mongoose.model(...)`.
+   - `createOrganizationMemberCtrl` is fully written but **not mounted** in `routes/work/OrganizationRoute.js`.
+2. **`routes/userRoute.js`**:
+   - Route `PATCH /:id/profile-photo` passes `uploadSingleImage` directly without calling it with an argument (e.g. `uploadSingleImage("profilePhoto")`). As written in `middlewares/upload.middleware.js`, `uploadSingleImage` is a factory function returning Express middleware `(req, res, next)`.
+3. **Deprecated User Token Method**:
+   - `userSchema.methods.generateAuthToken` in `models/auth/User.model.js` uses legacy `JWT_SECRET` (30 days). The active application architecture uses `utils/token.utils.js` and `services/session.service.js`.
+4. **UID Specification**:
+   - Previous documentation referenced an 8-digit numeric UID; the actual implementation in `utils/generateUID.utils.js` generates a **10-character alphanumeric uppercase** identifier (`[A-Z0-9]{10}`).
+5. **Work Domain Controllers**:
+   - Full Mongoose models exist for `Workspace`, `Project`, `Team`, `WorkItem`, `Milestone`, `Epic`, `Comment`, `Attachment`, `Activity`, and `Label`. However, their corresponding routes and controllers remain to be implemented in upcoming phases.
+
+---
+
+## 📄 License & Authors
+
+- **License**: ISC
+- **Author**: Abdelmoumaine Nessah ([@AbdelmoumaineNessah2002](https://github.com/AbdelmoumaineNessah2002/))
+- **Repository**: [Mushrif-App-Back-end](https://github.com/AbdelmoumaineNessah2002/Mushrif-App-Back-end)

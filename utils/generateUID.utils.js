@@ -1,4 +1,4 @@
-const { User } = require('../models/User');
+const { User } = require("../models/auth/User.model");
 
 const crypto = require("crypto");
 
@@ -17,12 +17,18 @@ function generateUID(length = 10) {
 }
 
 function buildBaseUsername(firstName, lastName) {
-  const cleanFirstName = firstName.toLowerCase().trim().replace(/[^a-z0-9]/g, '');
-  const cleanLastName = lastName.toLowerCase().trim().replace(/[^a-z0-9]/g, '');
+  const cleanFirstName = firstName
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]/g, "");
+  const cleanLastName = lastName
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]/g, "");
   return `${cleanFirstName}.${cleanLastName}`;
 }
 
 module.exports = {
   generateUID,
-  buildBaseUsername
+  buildBaseUsername,
 };

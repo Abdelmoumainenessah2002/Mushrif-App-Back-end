@@ -1,11 +1,8 @@
-
-const { User, validateUserId} = require("../models/User");
+const { User, validateUserId } = require("../models/auth/User.model");
 const t = require("../utils/t.utils");
 const messages = require("../constants/messages");
-
+const sessionService = require("../services/session.service");
 const asyncHandler = require("express-async-handler");
-
-
 
 /**
  * @desc suspend user account (for admin use only)
@@ -14,16 +11,14 @@ const asyncHandler = require("express-async-handler");
  * @access Private (Admin only)
  */
 
-
 module.exports.suspendUserAccountCtrl = asyncHandler(async (req, res) => {
-
   // validate user ID
   const { error } = validateUserId({ id: req.params.id });
 
   if (error) {
     return res.status(400).json({
-        success: false,
-        message: t(messages.INVALID_USER_ID, req.lang)
+      success: false,
+      message: t(messages.INVALID_USER_ID, req.lang),
     });
   }
 
@@ -32,16 +27,15 @@ module.exports.suspendUserAccountCtrl = asyncHandler(async (req, res) => {
   if (!user) {
     return res.status(404).json({
       success: false,
-      message: t(messages.USER_NOT_FOUND, req.lang)
-
+      message: t(messages.USER_NOT_FOUND, req.lang),
     });
   }
 
   // check if the role of the user is super admin, if yes, prevent suspension
-  if (user.role.includes('super_admin')) {
+  if (user.role.includes("super_admin")) {
     return res.status(403).json({
       success: false,
-      message: t(messages.CANNOT_SUSPEND_THIS_USER, req.lang)
+      message: t(messages.CANNOT_SUSPEND_THIS_USER, req.lang),
     });
   }
 
@@ -49,39 +43,50 @@ module.exports.suspendUserAccountCtrl = asyncHandler(async (req, res) => {
   if (!user.isActive) {
     return res.status(400).json({
       success: false,
-      message: t(messages.USER_ALREADY_SUSPENDED, req.lang)
+      message: t(messages.USER_ALREADY_SUSPENDED, req.lang),
     });
   }
 
-
   // admin can't suspend themselves
-    if (user._id.toString() === req.user.id.toString()) {
-        return res.status(403).json({
-            success: false,
-            message: t(messages.CANNOT_SUSPEND_SELF, req.lang)
-        });
-    }
+  if (user._id.toString() === req.user.id.toString()) {
+    return res.status(403).json({
+      success: false,
+      message: t(messages.CANNOT_SUSPEND_SELF, req.lang),
+    });
+  }
 
-
-    // admin can't suspend other admins unless they are super admins
-    if (user.role.includes('admin') && !req.user.role.includes('super_admin')) {
-        return res.status(403).json({
-            success: false,
-            message: t(messages.CANNOT_SUSPEND_THIS_USER, req.lang)
-        });
-    }
-
+  // admin can't suspend other admins unless they are super admins
+  if (user.role.includes("admin") && !req.user.role.includes("super_admin")) {
+    return res.status(403).json({
+      success: false,
+      message: t(messages.CANNOT_SUSPEND_THIS_USER, req.lang),
+    });
+  }
 
   // suspend the user
   user.isActive = false;
   await user.save();
 
+  // Revoke all active sessions so suspended user cannot refresh access tokens
+  const revokeResult = await sessionService.deleteAllUserSessions(
+    user._id.toString(),
+  );
+  if (revokeResult?.error) {
+    console.warn(
+      `[AdminController] Warning: Redis session revocation failed during account suspension for user ${user._id}:`,
+      revokeResult.message,
+    );
+    return res.status(503).json({
+      success: false,
+      message: t(messages.SESSION_REVOCATION_FAILED_SUSPEND, req.lang),
+    });
+  }
+
   res.status(200).json({
     success: true,
-    message: t(messages.USER_SUSPENDED, req.lang)
+    message: t(messages.USER_SUSPENDED, req.lang),
   });
 });
-
 
 /**
  * @desc Unsuspend user account (for admin use only)
@@ -91,13 +96,12 @@ module.exports.suspendUserAccountCtrl = asyncHandler(async (req, res) => {
  */
 
 module.exports.unsuspendUserAccountCtrl = asyncHandler(async (req, res) => {
-
   // validate user ID
   const { error } = validateUserId({ id: req.params.id });
   if (error) {
     return res.status(400).json({
-        success: false,
-        message: t(messages.INVALID_USER_ID, req.lang)
+      success: false,
+      message: t(messages.INVALID_USER_ID, req.lang),
     });
   }
 
@@ -105,41 +109,41 @@ module.exports.unsuspendUserAccountCtrl = asyncHandler(async (req, res) => {
   if (!user) {
     return res.status(404).json({
       success: false,
-      message: t(messages.USER_NOT_FOUND, req.lang)
+      message: t(messages.USER_NOT_FOUND, req.lang),
     });
   }
 
   // check if the role of the user is super admin, if yes, prevent suspension
-  if (user.role === 'super_admin') {
+  if (user.role === "super_admin") {
     return res.status(403).json({
       success: false,
-      message: t(messages.CANNOT_UNSUSPEND_THIS_USER, req.lang)
+      message: t(messages.CANNOT_UNSUSPEND_THIS_USER, req.lang),
     });
   }
 
-  // check if user is already active  
-    if (user.isActive) {
-        return res.status(400).json({
-        success: false,
-        message: t(messages.USER_ALREADY_UNSUSPENDED, req.lang)
-        });
-    }
+  // check if user is already active
+  if (user.isActive) {
+    return res.status(400).json({
+      success: false,
+      message: t(messages.USER_ALREADY_UNSUSPENDED, req.lang),
+    });
+  }
 
   // check if user is admin and the requester is not super admin, prevent unsuspension
-    if (user.role.includes('admin') && !req.user.role.includes('super_admin')) {
-        return res.status(403).json({
-            success: false,
-            message: t(messages.CANNOT_UNSUSPEND_THIS_USER, req.lang)
-        });
-    }
+  if (user.role.includes("admin") && !req.user.role.includes("super_admin")) {
+    return res.status(403).json({
+      success: false,
+      message: t(messages.CANNOT_UNSUSPEND_THIS_USER, req.lang),
+    });
+  }
 
   // admin can't unsuspend themselves
-    if (user._id.toString() === req.user.id.toString()) {
-        return res.status(403).json({
-            success: false,
-            message: t(messages.CANNOT_UNSUSPEND_THIS_USER, req.lang)
-        });
-    }
+  if (user._id.toString() === req.user.id.toString()) {
+    return res.status(403).json({
+      success: false,
+      message: t(messages.CANNOT_UNSUSPEND_THIS_USER, req.lang),
+    });
+  }
 
   // unsuspend the user
   user.isActive = true;
@@ -147,7 +151,6 @@ module.exports.unsuspendUserAccountCtrl = asyncHandler(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: t(messages.USER_UNSUSPENDED, req.lang)
+    message: t(messages.USER_UNSUSPENDED, req.lang),
   });
-
 });

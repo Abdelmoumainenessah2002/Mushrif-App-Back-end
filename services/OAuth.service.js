@@ -1,10 +1,15 @@
-const { User } = require('../models/User');
-const { generateUID, buildBaseUsername } = require('../utils/generateUID.utils');
-const t = require('../utils/t.utils');
-const messages = require('../constants/messages');
-const { getGitHubPrimaryEmail } = require('../utils/getGithubEmailsHelper.utils');
-const sendEmail = require('./email.service');
-const welcomeEmailTemplate = require('../emails/welcomeEmail.template');
+const { User } = require("../models/auth/User.model");
+const {
+  generateUID,
+  buildBaseUsername,
+} = require("../utils/generateUID.utils");
+const t = require("../utils/t.utils");
+const messages = require("../constants/messages");
+const {
+  getGitHubPrimaryEmail,
+} = require("../utils/getGithubEmailsHelper.utils");
+const welcomeEmailTemplate = require("../emails/welcomeEmail.template");
+const { addEmailJob } = require("../queues/email.queue");
 
 /**
  * OAuth Service - Handles all OAuth-related business logic
@@ -20,9 +25,14 @@ const welcomeEmailTemplate = require('../emails/welcomeEmail.template');
  * @param {string} lang - User's preferred language
  * @returns {Object} - { user, isNewUser }
  */
-async function handleOAuthUser(profile, provider, tokens, ipAddress, lang = 'en') {
+async function handleOAuthUser(
+  profile,
+  provider,
+  tokens,
+  ipAddress,
+  lang = "en",
+) {
   try {
-
     // Step 1: Check if user exists with this provider ID
     let user = await findUserByProviderID(provider, profile.id);
 
@@ -33,8 +43,8 @@ async function handleOAuthUser(profile, provider, tokens, ipAddress, lang = 'en'
           success: false,
           error: {
             statusCode: 403,
-            messageKey: messages.ACCOUNT_SUSPENDED
-          }
+            messageKey: messages.ACCOUNT_SUSPENDED,
+          },
         };
       }
       // User already connected to this OAuth provider and is ACTIVE
@@ -44,7 +54,7 @@ async function handleOAuthUser(profile, provider, tokens, ipAddress, lang = 'en'
 
     // Step 2: Check if user exists with this email
     const email = await extractEmail(profile, provider, tokens);
-    if (email && !email.endsWith('.temp')) {
+    if (email && !email.endsWith(".temp")) {
       user = await User.findOne({ email });
 
       if (user) {
@@ -54,8 +64,8 @@ async function handleOAuthUser(profile, provider, tokens, ipAddress, lang = 'en'
             success: false,
             error: {
               statusCode: 403,
-              messageKey: messages.ACCOUNT_SUSPENDED
-            }
+              messageKey: messages.ACCOUNT_SUSPENDED,
+            },
           };
         }
         // User exists with same email, is ACTIVE — safe to link and update
@@ -66,7 +76,7 @@ async function handleOAuthUser(profile, provider, tokens, ipAddress, lang = 'en'
           displayName: profile.displayName || profile.username,
           photoURL: getProfilePhoto(profile),
           accessToken: tokens.accessToken,
-          refreshToken: tokens.refreshToken
+          refreshToken: tokens.refreshToken,
         });
 
         await updateUserLoginInfo(user, ipAddress);
@@ -75,17 +85,23 @@ async function handleOAuthUser(profile, provider, tokens, ipAddress, lang = 'en'
     }
 
     // Step 3: Create new user (no existing user found)
-    user = await createNewOAuthUser(profile, provider, tokens, email, ipAddress, lang);
+    user = await createNewOAuthUser(
+      profile,
+      provider,
+      tokens,
+      email,
+      ipAddress,
+      lang,
+    );
     return { user, isNewUser: true, isLinked: false };
-
   } catch (error) {
-    console.error('Error in handleOAuthUser:', error);
+    console.error("Error in handleOAuthUser:", error);
     return {
       success: false,
       error: {
         statusCode: 500,
-        messageKey: messages.OAUTH_AUTH_FAILED
-      }
+        messageKey: messages.OAUTH_AUTH_FAILED,
+      },
     };
   }
 }
@@ -95,8 +111,8 @@ async function handleOAuthUser(profile, provider, tokens, ipAddress, lang = 'en'
  */
 async function findUserByProviderID(provider, providerId) {
   return await User.findOne({
-    'providers.provider': provider,
-    'providers.providerId': providerId
+    "providers.provider": provider,
+    "providers.providerId": providerId,
   });
 }
 
@@ -112,7 +128,7 @@ async function linkOAuthProvider(user, providerData) {
     photoURL: providerData.photoURL,
     accessToken: providerData.accessToken,
     refreshToken: providerData.refreshToken,
-    createdAt: new Date()
+    createdAt: new Date(),
   });
 
   return await user.save();
@@ -130,8 +146,14 @@ async function updateUserLoginInfo(user, ipAddress) {
 /**
  * Create new OAuth user
  */
-async function createNewOAuthUser(profile, provider, tokens, email, ipAddress, lang = 'en') {
-
+async function createNewOAuthUser(
+  profile,
+  provider,
+  tokens,
+  email,
+  ipAddress,
+  lang = "en",
+) {
   const { firstName, lastName } = extractUserNames(profile);
   const baseUsername = buildBaseUsername(firstName, lastName);
 
@@ -140,12 +162,12 @@ async function createNewOAuthUser(profile, provider, tokens, email, ipAddress, l
 
   while (true) {
     try {
-
       const uid = generateUID(10);
 
-      const username = usernameCounter === 0
-        ? baseUsername
-        : `${baseUsername}.${usernameCounter}`;
+      const username =
+        usernameCounter === 0
+          ? baseUsername
+          : `${baseUsername}.${usernameCounter}`;
 
       newUser = new User({
         username,
@@ -155,55 +177,65 @@ async function createNewOAuthUser(profile, provider, tokens, email, ipAddress, l
         email: email || `${profile.id}@${provider}.temp`,
         primaryProvider: provider,
         profilePhoto: {
-          url: getProfilePhoto(profile) ||
+          url:
+            getProfilePhoto(profile) ||
             "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png",
-          publicId: null
+          publicId: null,
         },
-        providers: [{
-          provider,
-          providerId: profile.id,
-          email: email || `${profile.id}@${provider}.temp`,
-          displayName: profile.displayName || profile.username,
-          photoURL: getProfilePhoto(profile),
-          accessToken: tokens.accessToken,
-          refreshToken: tokens.refreshToken,
-          createdAt: new Date()
-        }],
+        providers: [
+          {
+            provider,
+            providerId: profile.id,
+            email: email || `${profile.id}@${provider}.temp`,
+            displayName: profile.displayName || profile.username,
+            photoURL: getProfilePhoto(profile),
+            accessToken: tokens.accessToken,
+            refreshToken: tokens.refreshToken,
+            createdAt: new Date(),
+          },
+        ],
         loginHistory: [],
         lastLoginIP: ipAddress,
         lastLoginTime: new Date(),
         isVerified: true,
-        hasWelcomeNotification: true
+        hasWelcomeNotification: true,
       });
 
       await newUser.save();
 
-      // Send welcome email for new OAuth user
-      if (email && !email.endsWith('.temp')) {
-        try {
-          console.log('Sending OAuth welcome email with language:', lang);
-          const html = welcomeEmailTemplate({
-            firstName: newUser.firstName,
-            logoUrl: `${process.env.API_URL}/public/images/logo.png`,
-            lang: lang
-          });
+      // Queue welcome email for new OAuth user
+if (email && !email.endsWith(".temp")) {
+  try {
+    console.log(
+      "Queueing OAuth welcome email with language:",
+      lang,
+    );
 
-          await sendEmail({
-            to: newUser.email,
-            subject: t(messages.WELCOME_TITLE, lang),
-            html
-          });
-        } catch (emailError) {
-          console.error('Failed to send welcome email for OAuth user:', emailError);
-        }
-      }
+    const html = welcomeEmailTemplate({
+      firstName: newUser.firstName,
+      logoUrl: `${process.env.SERVER_URL}/public/images/logo.png`,
+      lang: lang,
+    });
+
+    await addEmailJob(
+      {
+        to: newUser.email,
+        subject: t(messages.WELCOME_TITLE, lang),
+        html,
+      },
+      "oauth-welcome-email",
+    );
+  } catch (emailQueueError) {
+    console.error(
+      "[OAuthService] Failed to queue welcome email:",
+      emailQueueError.message,
+    );
+  }
+}
 
       break;
-
     } catch (err) {
-
       if (err.code === 11000) {
-
         if (err.keyPattern?.uid) {
           continue;
         }
@@ -225,11 +257,11 @@ async function createNewOAuthUser(profile, provider, tokens, email, ipAddress, l
  * Extract email based on provider
  */
 async function extractEmail(profile, provider, tokens) {
-  if (provider === 'facebook' && !profile.emails?.[0]?.value) {
+  if (provider === "facebook" && !profile.emails?.[0]?.value) {
     return `${profile.id}@facebook.temp`;
   }
 
-  if (provider === 'github') {
+  if (provider === "github") {
     if (profile.githubPrimaryEmail) {
       return profile.githubPrimaryEmail.toLowerCase();
     } else {
@@ -245,14 +277,14 @@ async function extractEmail(profile, provider, tokens) {
  * Extract first and last names from profile
  */
 function extractUserNames(profile) {
-  let firstName = profile.name?.givenName ||
-                  profile.displayName?.split(' ')[0] ||
-                  profile.username ||
-                  'User';
+  let firstName =
+    profile.name?.givenName ||
+    profile.displayName?.split(" ")[0] ||
+    profile.username ||
+    "User";
 
-  let lastName = profile.name?.familyName ||
-                 profile.displayName?.split(' ')[1] ||
-                 'User';
+  let lastName =
+    profile.name?.familyName || profile.displayName?.split(" ")[1] || "User";
 
   return { firstName, lastName };
 }
@@ -268,7 +300,7 @@ function getProfilePhoto(profile) {
  * Check if user account is active
  */
 function isUserActive(user) {
-  return user.isActive === true;
+  return user && user.isActive === true && !user.isDeleted;
 }
 
 /**
@@ -281,7 +313,7 @@ function validateUserStatus(user) {
     return {
       valid: false,
       statusCode: 403,
-      messageKey: messages.ACCOUNT_SUSPENDED
+      messageKey: messages.ACCOUNT_SUSPENDED,
     };
   }
   return { valid: true };
@@ -297,5 +329,5 @@ module.exports = {
   extractUserNames,
   getProfilePhoto,
   isUserActive,
-  validateUserStatus
+  validateUserStatus,
 };
